@@ -1,10 +1,9 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build
-WORKDIR /LocalTest
 
-COPY ./LocalTest/LocalTest.csproj /LocalTest
+COPY ./src ./src
+
+WORKDIR /src
 RUN dotnet restore LocalTest.csproj
-
-COPY ./LocalTest /LocalTest
 
 
 RUN ls /
