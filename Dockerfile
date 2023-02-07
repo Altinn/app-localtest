@@ -4,9 +4,6 @@ COPY ./src ./src
 
 WORKDIR /src
 RUN dotnet restore LocalTest.csproj
-
-
-RUN ls /
 RUN dotnet build LocalTest.csproj -c Release -o /app_output
 RUN dotnet publish LocalTest.csproj -c Release -o /app_output
 
@@ -16,7 +13,7 @@ WORKDIR /app
 COPY --from=build /app_output .
 
 # Copy various data
-COPY ./TestData /TestData
+COPY ./testdata /testdata
 
 # setup the user and group (not important for LocalTest and this removes write access to /AltinnPlatformLocal)
 # RUN addgroup -g 3000 dotnet && adduser -u 1000 -G dotnet -D -s /bin/false dotnet
