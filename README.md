@@ -45,7 +45,33 @@ The app and local platform services are now running locally. The app can be acce
 
 Log in with a test user, using your app name and org name. This will redirect you to the app.
 
+### Changing configuration
+
+The Docker Compose config can be changed with local environment variables. There is a
+template file for the `.env` file [here](./.env.template), rename it to `.env` and
+uncomment some variables that you want different values for.
+
+Sometimes the local environment have another service running on port 80, so you might need to change this.
+
+```dotenv
+ALTINN3LOCAL_PORT=80
+```
+
+If you want to see the storage files on disk (instead of readig them trough the browser), change this to a local 
+path on your computer (ensure that it exists)
+
+```dotenv
+ALTINN3LOCALSTORAGE_PATH=C:/AltinnPlatformLocal/
+```
+
+If you want to use another domain than altinn3local.no for local testing you could do that this way:
+
+```dotenv
+TEST_DOMAIN=local.altinn.cloud
+```
+
 ### Multiple apps at the same time (running LocalTest locally)
+
 The setup described above (LocalTest running in Docker) currently only supports one app at a time. If you find
 yourself needing to run multiple apps at the same time, or if you need to debug or develop LocalTest, a local setup is
 preferred.
