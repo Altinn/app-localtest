@@ -1,0 +1,19 @@
+{
+  "SSN": "09026102194",
+  "Name": " JARLE GJERSTAD",
+  "FirstName": "Jarle",
+  "MiddleName": "",
+  "LastName": "Gjerstad",
+  "TelephoneNumber": "123456789",
+  "MobileNumber": "987654321",
+  "MailingAddress": "Hardangervegen 11",
+  "MailingPostalCode": "0157",
+  "MailingPostalCity": "Oslo",
+  "AddressMunicipalNumber": "0301",
+  "AddressMunicipalName": "Oslo",
+  "AddressStreetName": "Hardangervegen",
+  "AddressHouseNumber": "11",
+  "AddressHouseLetter": null,
+  "AddressPostalCode": "0151",
+  "AddressCity": "Oslo"
+}

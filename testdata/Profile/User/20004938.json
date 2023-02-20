@@ -1,14 +1,14 @@
 {
-  "UserId": 1337,
-  "UserName": "SophieDDG",
+  "UserId": 20004938,
+  "UserName": "JarleErKul",
   "PhoneNumber": "90001337",
   "Email": "1337@altinnstudiotestusers.com",
-  "PartyId": 501337,
+  "PartyId": 50019992,
   "Party": {
 
   },
   "UserType": 1,
   "ProfileSettingPreference": {
-	"Language": "nb"
+	"Language": "nn"
   }
 }
