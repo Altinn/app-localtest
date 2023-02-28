@@ -78,5 +78,9 @@
   {
     "Type": "altinn",
     "value": "HADM"
+  },
+  {
+    "Type": "altinn",
+    "value": "REVAI"
   }
 ]
