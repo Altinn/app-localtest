@@ -126,7 +126,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             try
             {
                 HttpClient client = new HttpClient();
-                client.BaseAddress = new Uri("http://localhost:5117/");
+                client.BaseAddress = new Uri("http://localhost:5110/");
                 HttpResponseMessage respnse = await client.GetAsync("swagger/index.html");
                 if (respnse.StatusCode.Equals(HttpStatusCode.OK))
                 {
