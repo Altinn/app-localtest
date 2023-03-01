@@ -7,7 +7,7 @@ RUN dotnet restore LocalTest.csproj
 RUN dotnet build LocalTest.csproj -c Release -o /app_output
 RUN dotnet publish LocalTest.csproj -c Release -o /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:7.0-alpine AS final
 EXPOSE 5101
 WORKDIR /app
 COPY --from=build /app_output .
