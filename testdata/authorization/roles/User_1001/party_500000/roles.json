@@ -1,10 +1,14 @@
 [
   {
     "Type": "altinn",
-    "value": "DAGL"
+    "value": "A0239"
   },
   {
     "Type": "altinn",
-    "value": "REGNA"
+    "value": "A0240"
+  },
+  {
+    "Type": "altinn",
+    "value": "A0241"
   }
 ]
