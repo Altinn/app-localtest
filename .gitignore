@@ -11,3 +11,5 @@ bld/
 [Oo]bj/
 msbuild.log
 AltinnPlatformLocal/
+/.vs/LocalTest
+*.user
