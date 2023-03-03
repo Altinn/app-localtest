@@ -155,7 +155,7 @@ namespace LocalTest.Controllers
 
             if (startAppModel.AppPathSelection?.Equals("accessmanagement") == true)
             {
-                return Redirect($"/accessmanagement/ui/given-api-delegations/overview");
+                return Redirect($"/accessmanagement/ui/offered-api-delegations/overview");
             }
 
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
@@ -452,7 +452,7 @@ namespace LocalTest.Controllers
             {
                 Name = "AltinnPartyId",
                 SameSite = SameSiteMode.Lax,
-                HttpOnly = false,
+                HttpOnly = true,
                 SecurePolicy = CookieSecurePolicy.None,
                 IsEssential = true,
                 Domain = _generalSettings.Hostname,

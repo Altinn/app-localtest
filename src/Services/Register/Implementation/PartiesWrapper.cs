@@ -38,7 +38,7 @@ namespace LocalTest.Services.Register.Implementation
         public async Task<Party?> LookupPartyBySSNOrOrgNo(string lookupValue)
         {
             Party? party = await FindParty(lookupValue);
-
+            
             await AddPersonOrOrganization(party);
 
             return party;
