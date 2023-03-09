@@ -155,7 +155,7 @@ namespace LocalTest.Controllers
 
             if (startAppModel.AppPathSelection?.Equals("accessmanagement") == true)
             {
-                return Redirect($"http://am.ui.local.altinn.cloud/accessmanagement/ui/given-api-delegations/overview");
+                return Redirect($"http://am.ui.local.altinn.cloud/accessmanagement/ui/offered-api-delegations/overview");
             }
 
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
@@ -410,7 +410,7 @@ namespace LocalTest.Controllers
         }
 
         private async Task<List<SelectListItem>> GetAppsList()
-        {
+        {           
             var applications = await _localApp.GetApplications();
             return applications.Select((kv) => GetSelectItem(kv.Value, kv.Key)).ToList();
         }
