@@ -155,7 +155,7 @@ namespace LocalTest.Controllers
 
             if (startAppModel.AppPathSelection?.Equals("accessmanagement") == true)
             {
-                return Redirect($"http://am.ui.local.altinn.cloud/accessmanagement/ui/offered-api-delegations/overview");
+                return Redirect($"http://{_generalSettings.AMHostname}/accessmanagement/ui/offered-api-delegations/overview");
             }
 
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
