@@ -434,7 +434,7 @@ namespace LocalTest.Controllers
             {
                 Name = "AltinnStudioRuntime",
                 SameSite = SameSiteMode.Lax,
-                HttpOnly = true,
+                HttpOnly = false,
                 SecurePolicy = CookieSecurePolicy.None,
                 IsEssential = true,
                 Domain = _generalSettings.Hostname,
@@ -452,7 +452,7 @@ namespace LocalTest.Controllers
             {
                 Name = "AltinnPartyId",
                 SameSite = SameSiteMode.Lax,
-                HttpOnly = true,
+                HttpOnly = false,
                 SecurePolicy = CookieSecurePolicy.None,
                 IsEssential = true,
                 Domain = _generalSettings.Hostname,
