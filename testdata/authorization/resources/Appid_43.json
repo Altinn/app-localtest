@@ -1,8 +1,8 @@
 {
 	"title": {
-		"en": "Aa-registeret OTP API",
-		"nb": "Aa-registeret OTP API",
-		"nn": "Aa-registeret OTP API"
+		"en": "AaaregisteretOTPAPI2131",
+		"nb": "AaaregisteretOTPAPI2131",
+		"nn": "AaaregisteretOTPAPI2131"
 	},
 	"sector": null,
 	"status": null,
@@ -16,7 +16,7 @@
 	"description": {
 		"en": "Aa-registeret OTP API",
 		"nb": "Aa-registeret OTP API",
-		"nn": "Aa-registeret OTP API"
+		"nn": "Aa-registeret OTP API" 
 	},
 	"resourceType": "MaskinportenSchema",
 	"thematicArea": null,
