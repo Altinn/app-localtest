@@ -162,6 +162,50 @@ namespace Altinn.Platform.Storage.Helpers
             bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, user);
             return authorized;
         }
+        
+        /// <summary>
+        /// Authorizes that the user has one or more of the actions on an instance.
+        /// </summary>
+        /// <returns>true if the user is authorized.</returns>
+        public async Task<bool> AuthorizeAnyOfInstanceActions(ClaimsPrincipal user, Instance instance, List<string> actions, string task = null)
+        {
+            string org = instance.Org;
+            string app = instance.AppId.Split('/')[1];
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+            XacmlJsonRequestRoot request;
+            if (actions.Count == 0)
+            {
+                return false;
+            }
+
+            if (instance.Id == null)
+            {
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, actions[0], instanceOwnerPartyId, null);
+            }
+            else
+            {
+                Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, actions[0], instanceOwnerPartyId, instanceGuid, task);
+            }
+
+            for (int i = 1; i < actions.Count; i++)
+            {
+                request.Request.Action.Add(DecisionHelper.CreateActionCategory(actions[i]));
+            }
+            
+            _logger.LogDebug("// Authorization Helper // AuthorizeAnyOfInstanceActions // request: {Request}", JsonConvert.SerializeObject(request));
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+            
+            _logger.LogDebug("// Authorization Helper // AuthorizeAnyOfInstanceActions // response: {Response}", JsonConvert.SerializeObject(response));
+            if (response?.Response == null)
+            {
+                _logger.LogInformation("// Authorization Helper // Authorize instance action failed for request: {request}.", JsonConvert.SerializeObject(request));
+                return false;
+            }
+
+            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, user);
+            return authorized;
+        }
 
         /// <summary>
         /// Authorize instances, and returns a list of instances that the user has the right to read.
