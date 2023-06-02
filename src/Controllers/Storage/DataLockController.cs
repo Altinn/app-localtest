@@ -44,7 +44,7 @@ public class DataLockController : ControllerBase
     /// <param name="dataGuid">The id of the data element to delete.</param>
     /// <returns></returns>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
-    [HttpPost]
+    [HttpPut]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -84,7 +84,7 @@ public class DataLockController : ControllerBase
             return Forbid();
         }
 
-        bool authorized = await _authorizationHelper.AuthorizeAnyOfInstanceActions(HttpContext.User, instance, new List<string>() { "write", "unlock" });
+        bool authorized = await _authorizationHelper.AuthorizeAnyOfInstanceActions(HttpContext.User, instance, new List<string>() { "write", "unlock", "reject" });
         if (!authorized)
         {
             return Forbid();
