@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
@@ -94,24 +96,22 @@ namespace LocalTest.Services.Storage.Implementation
             return dataElement;
         }
 
-
         public async Task<DataElement> Update(Guid instanceGuid, Guid dataElementId, Dictionary<string, object> propertylist)
         {
             string path = GetDataPath($"{instanceGuid}", $"{dataElementId}");
 
             if (File.Exists(path))
             {
-
                 string content = await ReadFileAsString(path);
-                DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                var n = JsonNode.Parse(content, new JsonNodeOptions { PropertyNameCaseInsensitive = true });
 
-
-
-                foreach (KeyValuePair<string, object> propertyItem in propertylist)
+                foreach (KeyValuePair<string, object> property in propertylist)
                 {
-
+                    string propName = property.Key.Trim('/');
+                    n[propName] = JsonConvert.SerializeObject(property.Value);
                 }
 
+                DataElement dataElement = n.Deserialize<DataElement>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 await Update(dataElement);
 
                 return dataElement;
