@@ -127,6 +127,7 @@ namespace LocalTest
             services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
 
             // Storage services
+            services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
             services.AddTransient<IAuthorization, AuthorizationService>();
             services.AddTransient<IDataService, DataService>();
             services.AddTransient<IInstanceService, InstanceService>();
