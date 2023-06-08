@@ -115,7 +115,7 @@ namespace Altinn.Platform.Storage.Authorization
                 // Set the cache options
                 MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, _pepSettings.PdpDecisionCachingTimeout, 0));
+               .SetAbsoluteExpiration(new TimeSpan(0, 0, 30));
 
                 _memoryCache.Set(cacheKey, response, cacheEntryOptions);
             }
