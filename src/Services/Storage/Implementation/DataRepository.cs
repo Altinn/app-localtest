@@ -94,7 +94,34 @@ namespace LocalTest.Services.Storage.Implementation
             return dataElement;
         }
 
-        public async Task<long> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
+
+        public async Task<DataElement> Update(Guid instanceGuid, Guid dataElementId, Dictionary<string, object> propertylist)
+        {
+            string path = GetDataPath($"{instanceGuid}", $"{dataElementId}");
+
+            if (File.Exists(path))
+            {
+
+                string content = await ReadFileAsString(path);
+                DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+
+
+
+                foreach (KeyValuePair<string, object> propertyItem in propertylist)
+                {
+
+                }
+
+                await Update(dataElement);
+
+                return dataElement;
+            }
+
+            throw new RepositoryException("Error occured");
+        }
+
+
+        public async Task<(long ContentLength, DateTimeOffset LastModified)> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
         {
             string filePath = GetFilePath(blobStoragePath);
             if (!Directory.Exists(Path.GetDirectoryName(filePath)))
@@ -117,7 +144,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         private string GetDataForInstanceFolder(string instanceId)
         {
-            return Path.Combine(GetDataCollectionFolder() + instanceId.Replace("/", "_") + "/"); 
+            return Path.Combine(GetDataCollectionFolder() + instanceId.Replace("/", "_") + "/");
         }
 
         private string GetDataCollectionFolder()
@@ -165,7 +192,7 @@ namespace LocalTest.Services.Storage.Implementation
             await WriteToFile(path, stream);
         }
 
-        private static async Task<long> WriteToFile(string path, Stream stream)
+        private static async Task<(long ContentLength, DateTimeOffset LastModified)> WriteToFile(string path, Stream stream)
         {
             if (stream is not MemoryStream memStream)
             {
@@ -195,7 +222,7 @@ namespace LocalTest.Services.Storage.Implementation
             }
         }
 
-        private static async Task<long> WriteToFileInternal(string path, MemoryStream stream)
+        private static async Task<(long ContentLength, DateTimeOffset LastModified)> WriteToFileInternal(string path, MemoryStream stream)
         {
             long fileSize;
             await using (FileStream streamToWriteTo = File.Open(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
@@ -205,7 +232,12 @@ namespace LocalTest.Services.Storage.Implementation
                 fileSize = streamToWriteTo.Length;
             }
 
-            return fileSize;
+            return (fileSize, DateTime.UtcNow);
+        }
+
+        public Task<Dictionary<string, List<DataElement>>> ReadAllForMultiple(List<string> instanceGuids)
+        {
+            throw new NotImplementedException();
         }
     }
 }
