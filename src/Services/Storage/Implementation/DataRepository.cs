@@ -104,13 +104,27 @@ namespace LocalTest.Services.Storage.Implementation
                 foreach (KeyValuePair<string, object> property in propertylist)
                 {
                     string propName = property.Key.Trim('/');
+
+                    if (propName == "refs" || propName== "fileScanResult")
+                    {
+                        continue;
+                    }
+
                     n[propName] = JsonConvert.SerializeObject(property.Value);
                 }
 
-                DataElement dataElement = n.Deserialize<DataElement>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                await Update(dataElement);
+                try
+                {
+                    DataElement dataElement = n.Deserialize<DataElement>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString});
 
-                return dataElement;
+                    await Update(dataElement);
+
+                    return dataElement;
+                }
+                catch (Exception e)
+                {
+                    throw;
+                }
             }
 
             throw new RepositoryException("Error occured");
