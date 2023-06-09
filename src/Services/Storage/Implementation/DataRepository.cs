@@ -2,12 +2,11 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
 using LocalTest.Configuration;
-using LocalTest.Helpers;
 
 using Microsoft.Extensions.Options;
 
@@ -18,11 +17,9 @@ namespace LocalTest.Services.Storage.Implementation
     public class DataRepository : IDataRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly JsonSerializerOptions _options;
+
         public DataRepository(IOptions<LocalPlatformSettings> localPlatformSettings)
         {
-            _options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString };
-            _options.Converters.Add(new CustomDateTimeConverter());
             _localPlatformSettings = localPlatformSettings.Value;
         }
 
@@ -103,23 +100,77 @@ namespace LocalTest.Services.Storage.Implementation
             if (File.Exists(path))
             {
                 string content = await ReadFileAsString(path);
-                var n = JsonNode.Parse(content, new JsonNodeOptions { PropertyNameCaseInsensitive = true });
+                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(content);
+
                 foreach (KeyValuePair<string, object> property in propertylist)
                 {
                     string propName = property.Key.Trim('/');
-                    if (property.Value?.GetType() == typeof(DateTime))
+                    switch (propName)
                     {
-                        DateTime time = (DateTime)property.Value;
-                        n[propName] = time.ToString(DateTimeHelper.Iso8601UtcFormat);
-                    }
-                    else
-                    {
-                        n[propName] = property.Value?.ToString();
+                        case "contentType":
+                            {
+                                dataElement.ContentType = (string)property.Value;
+                                break;
+                            }
+                        case "deleteStatus":
+                            {
+                                dataElement.DeleteStatus = (DeleteStatus)property.Value;
+                                break;
+                            }
+                        case "filename":
+                            {
+                                dataElement.Filename = (string)property.Value;
+                                break;
+                            }
+                        case "fileScanResult":
+                            {
+                                dataElement.FileScanResult = (FileScanResult)property.Value;
+                                break;
+                            }
+                        case "isRead":
+                            {
+                                dataElement.IsRead = (bool)property.Value;
+                                break;
+                            }
+                        case "lastChangedBy":
+                            {
+                                dataElement.LastChangedBy = (string)property.Value;
+                                break;
+                            }
+                        case "lastChanged":
+                            {
+                                dataElement.LastChanged = (DateTime)property.Value;
+                                break;
+                            }
+                        case "locked":
+                            {
+                                dataElement.Locked = (bool)property.Value;
+                                break;
+                            }
+                        case "refs":
+                            {
+                                dataElement.Refs = (List<Guid>)property.Value;
+                                break;
+                            }
+                        case "references":
+                            {
+                                dataElement.References = (List<Reference>)property.Value;
+                                break;
+                            }
+                        case "size":
+                            {
+                                dataElement.Size = (long)property.Value;
+                                break;
+                            }
+                        case "tags":
+                            {
+                                dataElement.Tags = (List<string>)property.Value;
+                                break;
+                            }
+                        default:
+                            break;
                     }
                 }
-
-                DataElement dataElement = System.Text.Json.JsonSerializer.Deserialize<DataElement>(n.ToString(), _options);
-
                 await Update(dataElement);
 
                 return dataElement;
