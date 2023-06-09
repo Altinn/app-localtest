@@ -2,10 +2,12 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
 using LocalTest.Configuration;
+using LocalTest.Helpers;
 
 using Microsoft.Extensions.Options;
 
@@ -16,9 +18,11 @@ namespace LocalTest.Services.Storage.Implementation
     public class DataRepository : IDataRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
-
+        private readonly JsonSerializerOptions _options;
         public DataRepository(IOptions<LocalPlatformSettings> localPlatformSettings)
         {
+            _options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString };
+            _options.Converters.Add(new CustomDateTimeConverter());
             _localPlatformSettings = localPlatformSettings.Value;
         }
 
@@ -100,36 +104,29 @@ namespace LocalTest.Services.Storage.Implementation
             {
                 string content = await ReadFileAsString(path);
                 var n = JsonNode.Parse(content, new JsonNodeOptions { PropertyNameCaseInsensitive = true });
-
                 foreach (KeyValuePair<string, object> property in propertylist)
                 {
                     string propName = property.Key.Trim('/');
-
-                    if (propName == "refs" || propName== "fileScanResult")
+                    if (property.Value?.GetType() == typeof(DateTime))
                     {
-                        continue;
+                        DateTime time = (DateTime)property.Value;
+                        n[propName] = time.ToString(DateTimeHelper.Iso8601UtcFormat);
                     }
-
-                    n[propName] = JsonConvert.SerializeObject(property.Value);
+                    else
+                    {
+                        n[propName] = property.Value?.ToString();
+                    }
                 }
 
-                try
-                {
-                    DataElement dataElement = n.Deserialize<DataElement>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString});
+                DataElement dataElement = System.Text.Json.JsonSerializer.Deserialize<DataElement>(n.ToString(), _options);
 
-                    await Update(dataElement);
+                await Update(dataElement);
 
-                    return dataElement;
-                }
-                catch (Exception e)
-                {
-                    throw;
-                }
+                return dataElement;
             }
 
             throw new RepositoryException("Error occured");
         }
-
 
         public async Task<(long ContentLength, DateTimeOffset LastModified)> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
         {
