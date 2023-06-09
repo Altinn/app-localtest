@@ -92,44 +92,66 @@ namespace LocalTest.Services.Storage.Implementation
             return dataElement;
         }
 
-        public async Task<DataElement> Update(Guid instanceGuid, Guid dataElementId, Dictionary<string, object> propertylist)
+public async Task<DataElement> Update(Guid instanceGuid, Guid dataElementId, Dictionary<string, object> propertylist)
         {
             string path = GetDataPath($"{instanceGuid}", $"{dataElementId}");
 
             if (File.Exists(path))
             {
                 string content = await ReadFileAsString(path);
-                var n = JsonNode.Parse(content, new JsonNodeOptions { PropertyNameCaseInsensitive = true });
-
+                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(content);
+    
                 foreach (KeyValuePair<string, object> property in propertylist)
                 {
                     string propName = property.Key.Trim('/');
-
-                    if (propName == "refs" || propName== "fileScanResult")
+                    switch (propName)
                     {
-                        continue;
+                        case "contentType":
+                        {
+                            dataElement.ContentType = (string) property.Value;
+                            break;
+                        }
+                        case "filename":
+                        {
+                            dataElement.Filename = (string) property.Value;
+                            break;
+                        }
+                        case "lastChangedBy":
+                        {
+                            dataElement.LastChangedBy = (string) property.Value;
+                            break;
+                        }
+                        case "lastChanged":
+                        {
+                            dataElement.LastChanged = (DateTime) property.Value;
+                            break;
+                        }
+                        case "refs":
+                        {
+                            dataElement.Refs = (List<Guid>) property.Value;
+                            break;
+                        }
+                        case "references":
+                        {
+                            dataElement.References = (List<Reference>) property.Value;
+                            break;
+                        }
+                        case "size":
+                        {
+                            dataElement.Size = (long) property.Value;
+                            break;
+                        }
+                        default:
+                            break;
                     }
-
-                    n[propName] = JsonConvert.SerializeObject(property.Value);
                 }
+                await Update(dataElement);
 
-                try
-                {
-                    DataElement dataElement = n.Deserialize<DataElement>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true, NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString});
-
-                    await Update(dataElement);
-
-                    return dataElement;
-                }
-                catch (Exception e)
-                {
-                    throw;
-                }
+                return dataElement;
             }
 
             throw new RepositoryException("Error occured");
         }
-
 
         public async Task<(long ContentLength, DateTimeOffset LastModified)> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
         {
