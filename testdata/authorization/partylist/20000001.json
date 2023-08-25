@@ -1,0 +1,26 @@
+[
+  {
+    "partyId": "50002109",
+    "partyTypeName": 1,
+    "ssn": "01025140032",
+    "unitType": null,
+    "name": "TRINE ALSVIK",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  },
+  {
+    "partyId": "50004621",
+    "partyTypeName": 2,
+    "OrgNumber": "910421751",
+    "unitType": "AS",
+    "name": " AKLAND OG MOI",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  }
+]
