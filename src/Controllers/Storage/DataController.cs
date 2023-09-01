@@ -285,7 +285,7 @@ namespace Altinn.Platform.Storage.Controllers
             if (length == 0)
             {
                 await _dataRepository.DeleteDataInStorage(instance.Org, newData.BlobStoragePath);
-                return BadRequest("File was 0 bytes");
+                return BadRequest("Empty stream provided. Cannot persist data.");
             }
 
             if (User.GetOrg() == instance.Org)
