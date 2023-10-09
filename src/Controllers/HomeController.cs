@@ -163,6 +163,11 @@ namespace LocalTest.Controllers
                 return Redirect($"/accessmanagement/ui/given-api-delegations/overview");
             }
 
+            if (startAppModel.AppPathSelection?.Equals("authenticationui") == true)
+            {
+                return Redirect($"/authfront/ui/");
+            }
+
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
 
             // Ensure that the documentstorage in LocalTestingStorageBasePath is updated with the most recent app data

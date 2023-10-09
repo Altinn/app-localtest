@@ -55,6 +55,13 @@ namespace LocalTest.Services.LocalApp.Implementation
                 return ret;
             }
 
+            Application? authfront = await GetAuthenticationFrontend();
+            if(authfront != null)
+            {
+                ret.Add("authenticationui", authfront);
+                return ret;
+            }
+
             // Get list of apps from the configured folder AppRepositoryBasePath
             string path = _localPlatformSettings.AppRepositoryBasePath;
 
@@ -133,6 +140,28 @@ namespace LocalTest.Services.LocalApp.Implementation
                     Dictionary<string, string> title =  new Dictionary<string, string>();
                     title.Add("nb", "Access Management");
                     return new Application() { Id = "accessmanagement/ui", Title = title, Org="ALT" };
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private async Task<Application?> GetAuthenticationFrontend()
+        {
+            try
+            {
+                HttpClient client = new HttpClient();
+                client.BaseAddress = new Uri("http://localhost:5006/");
+                HttpResponseMessage respnse = await client.GetAsync("swagger/index.html");
+                if (respnse.StatusCode.Equals(HttpStatusCode.OK))
+                {
+                    Dictionary<string, string> title = new Dictionary<string, string>();
+                    title.Add("nb", "Authentication Frontend");
+                    return new Application() { Id = "authfront/ui", Title = title, Org = "ALT" };
                 }
 
                 return null;
