@@ -38,10 +38,10 @@
         @Html.AntiForgeryToken()
         ;
         <div class="card-body">
-            <input type="file" class="form-control" name="tenorJsonFiles" multiple="multiple" />
+            <input type="file" class="form-control" accept=".json, application/json" name="tenorJsonFiles" multiple="multiple" />
         </div>
         <div class="card-body">
-            <input type="submit" class="btn btn-primary" value="Save json files to storage" />
+            <input type="submit" class="btn btn-primary" value="Upload tenor files to storage" />
         </div>
     }
 </div>
@@ -61,8 +61,10 @@
     <tbody>
         @foreach (var item in Model.FileItems)
             {
-                <tr>
-                    <td><input type="checkbox" name="@item.FileName" /></td>
+                <tr class='@(item.Valid ? "":"table-danger")'>
+                    <td>
+                        <input type="checkbox" name="@item.FileName" />
+                    </td>
                     <td>@item.FileName</td>
                     @if (item.Brreg is not null)
                     {
@@ -92,7 +94,7 @@
     </table>
     <input type="submit" name="Delete" class="btn btn-danger" value="Slett markerte" />
     <div class="btn-group">
-        <input type="submit" name="Download" class="btn btn-primary" value="Last ned som altinn studo json" />
-        <input type="submit" name="DownloadFile" class="btn btn-secondary" value="▼" />
+        <input type="submit" name="DownloadFile" class="btn btn-primary" value="Last ned markerte personer og enheter som testData.json" />
+        <input type="submit" name="Download" class="btn btn-secondary" value="Vis testData.json " />
     </div>
 }
