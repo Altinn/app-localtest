@@ -13,7 +13,7 @@ namespace Authorization.Interface.Models
         /// Gets or sets the role type
         /// </summary>
         [JsonProperty]
-        [JsonPropertyName("value")]
+        [JsonPropertyName("type")]
         public string Type { get; set; }
 
         /// <summary>
