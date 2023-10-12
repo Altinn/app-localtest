@@ -1,0 +1,9 @@
+<script>
+    function resizeIframe(obj) {
+        obj.style.height = (obj.contentWindow.document.documentElement.scrollHeight + 40) + 'px';
+        obj.style.width = (obj.contentWindow.document.documentElement.scrollWidth + 5) + 'px';
+    }
+</script>
+
+<iframe src="/LocalPlatformStorage/" title="" style="width: 100%; min-height:50vh;" scrolling="auto"
+    onload="resizeIframe(this)"></iframe>
