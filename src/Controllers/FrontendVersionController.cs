@@ -4,14 +4,11 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-using Altinn.Platform.Storage.Repository;
-
 using LocalTest.Configuration;
 using LocalTest.Models;
 using LocalTest.Services.LocalApp.Interface;
 
 using LocalTest.Services.TestData;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -20,19 +17,6 @@ namespace LocalTest.Controllers;
 [Route("Home/[controller]/[action]")]
 public class FrontendVersionController : Controller
 {
-    private readonly TenorDataRepository _tenorDataRepository;
-    private readonly LocalPlatformSettings _localPlatformSettings;
-    private readonly ILocalApp _localApp;
-
-    public FrontendVersionController(
-        TenorDataRepository tenorDataRepository,
-        IOptions<LocalPlatformSettings> localPlatformSettings,
-        ILocalApp localApp)
-    {
-        _tenorDataRepository = tenorDataRepository;
-        _localPlatformSettings = localPlatformSettings.Value;
-        _localApp = localApp;
-    }
     /// <summary>
     ///  See src\development\loadbalancer\nginx.conf
     /// </summary>

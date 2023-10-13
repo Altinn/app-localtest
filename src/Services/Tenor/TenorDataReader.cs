@@ -23,7 +23,12 @@ public class TenorDataRepository
 
     public DirectoryInfo GetTenorStorageDirectory()
     {
-        return new DirectoryInfo(Path.Join(_settings.LocalTestingStorageBasePath, _settings.TenorDataFolder));
+        var dir = new DirectoryInfo(Path.Join(_settings.LocalTestingStorageBasePath, _settings.TenorDataFolder));
+        if (!dir.Exists)
+        {
+            dir.Create();
+        }
+        return dir;
     }
 
 
@@ -32,10 +37,6 @@ public class TenorDataRepository
         var freg = new List<Freg>();
         var brregErFr = new List<BrregErFr>();
         var tenorFolder = GetTenorStorageDirectory();
-        if (!tenorFolder.Exists)
-        {
-            return (brregErFr, freg);
-        }
 
         foreach (var fregFile in tenorFolder.GetFiles("freg.*.kildedata.json").Where(f => files?.Contains(f.Name) ?? true))
         {

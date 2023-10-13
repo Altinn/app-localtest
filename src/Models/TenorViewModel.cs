@@ -7,7 +7,6 @@ using LocalTest.Services.TestData;
 public class TenorViewModel
 {
     public List<TenorFileItem> FileItems { get; set; } = default!;
-    public AppTestDataModel? AppUsers { get; set; }
 }
 
 public class TenorFileItem

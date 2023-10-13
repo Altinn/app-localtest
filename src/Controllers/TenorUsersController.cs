@@ -2,11 +2,6 @@
 using System.Text.Json;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-
-using Altinn.Platform.Storage.Repository;
-
-using LocalTest.Configuration;
 using LocalTest.Models;
 using LocalTest.Services.LocalApp.Interface;
 
@@ -18,27 +13,19 @@ namespace LocalTest.Controllers;
 public class TenorUsersController : Controller
 {
     private readonly TenorDataRepository _tenorDataRepository;
-    private readonly ILocalApp _localApp;
 
-    public TenorUsersController(
-        TenorDataRepository tenorDataRepository,
-        ILocalApp localApp)
+    public TenorUsersController(TenorDataRepository tenorDataRepository)
     {
         _tenorDataRepository = tenorDataRepository;
-        _localApp = localApp;
     }
 
 
 
     public async Task<IActionResult> Index()
     {
-        var appUsers = await _localApp.GetTestData();
-
         return View(new TenorViewModel()
         {
-            AppUsers = appUsers,
             FileItems = await _tenorDataRepository.GetFileItems(),
-
         });
     }
 
