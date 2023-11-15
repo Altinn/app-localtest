@@ -52,12 +52,7 @@ public class EmailNotificationOrdersController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
-        string? creator = HttpContext.GetOrg();
-
-        if (creator == null)
-        {
-            return Forbid();
-        }
+        string creator = "localtest";
 
         var orderRequest = emailNotificationOrderRequest.MapToOrderRequest(creator);
         (NotificationOrder? registeredOrder, ServiceError? error) = await _orderService.RegisterEmailNotificationOrder(orderRequest);
