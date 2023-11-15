@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Platform.Storage.Models;
+
+using LocalTest.Models;
 
 namespace Altinn.Platform.Storage.Services
 {

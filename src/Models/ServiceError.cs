@@ -1,4 +1,4 @@
-namespace Altinn.Platform.Storage.Models
+namespace LocalTest.Models
 {
     /// <summary>
     /// A class representing a service error object used to transfere error information from service to controller.
