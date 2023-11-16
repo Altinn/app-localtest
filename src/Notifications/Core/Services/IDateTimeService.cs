@@ -1,0 +1,13 @@
+﻿namespace LocalTest.Notifications.Core.Services;
+
+/// <summary>
+/// Interface describing a dateTime service
+/// </summary>
+public interface IDateTimeService
+{
+    /// <summary>
+    /// Provides DateTime UtcNow
+    /// </summary>
+    /// <returns></returns>
+    public DateTime UtcNow();
+}

@@ -1,10 +1,10 @@
-﻿using Altinn.Notifications.Core.Enums;
-using Altinn.Notifications.Core.Models;
-using Altinn.Notifications.Core.Models.Address;
-using Altinn.Notifications.Core.Models.NotificationTemplate;
-using Altinn.Notifications.Core.Models.Orders;
-using Altinn.Notifications.Extensions;
-using Altinn.Notifications.Models;
+﻿using LocalTest.Notifications.API.Extensions;
+using LocalTest.Notifications.API.Models;
+using LocalTest.Notifications.Core.Models;
+using LocalTest.Notifications.Core.Models.Address;
+using LocalTest.Notifications.Core.Models.Enums;
+using LocalTest.Notifications.Core.Models.NotificationTemplate;
+using LocalTest.Notifications.Core.Models.Orders;
 
 namespace Altinn.Notifications.Mappers;
 

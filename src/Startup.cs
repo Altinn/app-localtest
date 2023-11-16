@@ -6,9 +6,6 @@ using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
-using Altinn.Notifications.Core.Repository.Interfaces;
-using Altinn.Notifications.Core.Services.Interfaces;
-using Altinn.Notifications.Core.Services;
 using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
@@ -38,7 +35,6 @@ using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Events.Implementation;
 using LocalTest.Services.LocalApp.Implementation;
 using LocalTest.Services.LocalApp.Interface;
-using LocalTest.Services.Notifications;
 using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
@@ -60,10 +56,13 @@ using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 using ResourceRegistryTest.Mocks;
-using Altinn.Notifications.Models;
-using Altinn.Notifications.Validators;
 using FluentValidation;
-using Altinn.Notifications.Extensions;
+using LocalTest.Notifications.Controllers;
+using LocalTest.Notifications.Extensions;
+using LocalTest.Notifications.Models.API;
+using LocalTest.Notifications.Core.Services;
+using LocalTest.Notifications.Core.Repository;
+using LocalTest.Notifications.Persistence.Repository;
 
 namespace LocalTest
 {
