@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.Notifications.Core.Models.Orders;
+
 using LocalTest.Notifications.Core.Models.Enums;
 
 namespace LocalTest.Notifications.Core.Models.Notification;

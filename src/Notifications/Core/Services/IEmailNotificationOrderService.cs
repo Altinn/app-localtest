@@ -1,4 +1,5 @@
-﻿using LocalTest.Models;
+﻿using Altinn.Notifications.Core.Models;
+
 using LocalTest.Notifications.Core.Models.Orders;
 
 namespace LocalTest.Notifications.Core.Services;

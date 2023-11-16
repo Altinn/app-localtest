@@ -1,5 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 
+using LocalTest.Notifications.Models.API;
+
 namespace LocalTest.Notifications.API.Models
 {
     /// <summary>

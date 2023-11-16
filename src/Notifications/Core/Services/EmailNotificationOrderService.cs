@@ -1,4 +1,6 @@
-﻿using LocalTest.Models;
+﻿using Altinn.Notifications.Core.Models;
+
+using LocalTest.Models;
 using LocalTest.Notifications.Core.Models.NotificationTemplate;
 using LocalTest.Notifications.Core.Models.Orders;
 using LocalTest.Notifications.Core.Repository;

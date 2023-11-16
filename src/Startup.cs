@@ -63,6 +63,8 @@ using LocalTest.Notifications.Models.API;
 using LocalTest.Notifications.Core.Services;
 using LocalTest.Notifications.Core.Repository;
 using LocalTest.Notifications.Persistence.Repository;
+using LocalTest.Notifications.API.Models;
+using LocalTest.Notifications.API.Extensions;
 
 namespace LocalTest
 {

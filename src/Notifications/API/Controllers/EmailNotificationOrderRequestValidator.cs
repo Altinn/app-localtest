@@ -1,7 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 
 using FluentValidation;
-using LocalTest.Notifications.Models.API;
+
+using LocalTest.Notifications.API.Models;
 
 namespace LocalTest.Notifications.Controllers;
 

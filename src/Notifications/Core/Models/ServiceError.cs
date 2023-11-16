@@ -1,4 +1,4 @@
-﻿namespace LocalTest.Notifications.Core.Models;
+﻿namespace Altinn.Notifications.Core.Models;
 
 /// <summary>
 /// A class representing a service error object used to transfere error information from service to controller.
@@ -14,7 +14,7 @@ public class ServiceError
     /// <summary>
     /// The error message
     /// </summary>
-    public string ErrorMessage { get; private set; }
+    public string? ErrorMessage { get; private set; }
 
     /// <summary>
     /// Create a new instance of a service error

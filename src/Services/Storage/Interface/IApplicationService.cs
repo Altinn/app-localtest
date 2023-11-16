@@ -1,4 +1,4 @@
-using LocalTest.Models;
+using Altinn.Platform.Storage.Models;
 
 namespace Altinn.Platform.Storage.Services
 {

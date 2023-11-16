@@ -1,12 +1,14 @@
-﻿using Altinn.Notifications.Mappers;
+﻿using Altinn.Notifications.Core.Models;
 
 using FluentValidation;
 
-using LocalTest.Models;
+using LocalTest.Notifications.API.Controllers;
+using LocalTest.Notifications.API.Extensions;
+using LocalTest.Notifications.API.Mappers;
+using LocalTest.Notifications.API.Models;
 using LocalTest.Notifications.Core.Models.Orders;
 using LocalTest.Notifications.Core.Services;
-using LocalTest.Notifications.Extensions;
-using LocalTest.Notifications.Models.API;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace LocalTest.Notifications.Controllers;
