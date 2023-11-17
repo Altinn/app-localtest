@@ -1,8 +1,8 @@
 ﻿#nullable enable
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
 using Altinn.Notifications.Core.Enums;
+using Altinn.Notifications.Core.Models.Orders;
 
 namespace Altinn.Notifications.Core.Models.Notification;
 
