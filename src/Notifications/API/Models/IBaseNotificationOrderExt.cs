@@ -1,4 +1,5 @@
-﻿namespace Altinn.Notifications.Models;
+﻿#nullable enable
+namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// A class representing the base properties of a registered notification order. 

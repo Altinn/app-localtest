@@ -1,4 +1,5 @@
-﻿namespace Altinn.Notifications.Extensions;
+﻿#nullable enable
+namespace Altinn.Notifications.Extensions;
 
 /// <summary>
 /// Extensions for HTTP Context

@@ -1,4 +1,5 @@
-﻿namespace Altinn.Notifications.Core.Models.Notification;
+﻿#nullable enable
+namespace Altinn.Notifications.Core.Models.Notification;
 
 /// <summary>
 /// An interface representing a summary of the notifications related to an order

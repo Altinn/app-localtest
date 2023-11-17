@@ -1,4 +1,5 @@
-﻿using Altinn.Notifications.Core.Models;
+﻿#nullable enable
+using Altinn.Notifications.Core.Models;
 using Altinn.Notifications.Core.Models.Orders;
 
 namespace Altinn.Notifications.Core.Services.Interfaces;
