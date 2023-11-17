@@ -1,4 +1,5 @@
-﻿using Altinn.Notifications.Core.Models.Address;
+﻿#nullable enable
+using Altinn.Notifications.Core.Models.Address;
 
 namespace Altinn.Notifications.Core.Models;
 

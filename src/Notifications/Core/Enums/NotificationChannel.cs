@@ -1,4 +1,5 @@
-﻿namespace Altinn.Notifications.Core.Enums;
+﻿#nullable enable
+namespace Altinn.Notifications.Core.Enums;
 
 /// <summary>
 /// Enum describing available notification channels.

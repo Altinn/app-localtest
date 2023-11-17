@@ -1,4 +1,5 @@
-﻿using Altinn.Notifications.Core.Enums;
+﻿#nullable enable
+using Altinn.Notifications.Core.Enums;
 using Altinn.Notifications.Core.Models.Recipients;
 
 namespace Altinn.Notifications.Core.Models.Notification

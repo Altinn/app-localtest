@@ -1,4 +1,5 @@
-﻿using FluentValidation.Results;
+﻿#nullable enable
+using FluentValidation.Results;
 
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿#nullable enable
+using System.Text.Json;
 
 using Altinn.Notifications.Core.Enums;
 using Altinn.Notifications.Core.Models.Orders;
