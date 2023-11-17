@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace LocalTest.Notifications.Models.API;
+namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// A class representing a status summary
@@ -20,7 +20,7 @@ public class StatusExt
     /// Gets or sets the description
     /// </summary>
     [JsonPropertyName("description")]
-    public string StatusDescription { get; set; }
+    public string? StatusDescription { get; set; }
 
     /// <summary>
     /// Gets or sets the date time of when the status was last updated

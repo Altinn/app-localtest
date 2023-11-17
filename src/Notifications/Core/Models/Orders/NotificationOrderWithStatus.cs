@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
-using LocalTest.Notifications.Core.Models;
-using LocalTest.Notifications.Core.Models.Enums;
 
-namespace LocalTest.Notifications.Core.Models.Orders;
+using Altinn.Notifications.Core.Enums;
+
+namespace Altinn.Notifications.Core.Models.Orders;
 
 /// <summary>
 /// A class representing a registered notification order with status information. 
@@ -13,7 +13,7 @@ public class NotificationOrderWithStatus : IBaseNotificationOrder
     public Guid Id { get; internal set; }
 
     /// <inheritdoc/>>
-    public string SendersReference { get; internal set; }
+    public string? SendersReference { get; internal set; }
 
     /// <inheritdoc/>>
     public DateTime RequestedSendTime { get; internal set; }
@@ -40,7 +40,7 @@ public class NotificationOrderWithStatus : IBaseNotificationOrder
     /// <summary>
     /// Initializes a new instance of the <see cref="NotificationOrderWithStatus"/> class.
     /// </summary>
-    public NotificationOrderWithStatus(Guid id, string sendersReference, DateTime requestedSendTime, Creator creator, DateTime created, NotificationChannel notificationChannel, ProcessingStatus processingStatus)
+    public NotificationOrderWithStatus(Guid id, string? sendersReference, DateTime requestedSendTime, Creator creator, DateTime created, NotificationChannel notificationChannel, ProcessingStatus processingStatus)
     {
         Id = id;
         SendersReference = sendersReference;
@@ -85,7 +85,7 @@ public class ProcessingStatus
     /// Gets the description
     /// </summary>
     [JsonPropertyName("description")]
-    public string StatusDescription { get; internal set; }
+    public string? StatusDescription { get; internal set; }
 
     /// <summary>
     /// Gets the date time of when the status was last updated
@@ -96,7 +96,7 @@ public class ProcessingStatus
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessingStatus"/> class.
     /// </summary>
-    public ProcessingStatus(OrderProcessingStatus status, DateTime lastUpdate, string statusDescription = null)
+    public ProcessingStatus(OrderProcessingStatus status, DateTime lastUpdate, string? statusDescription = null)
     {
         Status = status;
         StatusDescription = statusDescription;

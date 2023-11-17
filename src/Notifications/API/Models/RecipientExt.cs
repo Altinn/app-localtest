@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace LocalTest.Notifications.API.Models;
+namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// Class representing a notification recipient
@@ -14,5 +14,5 @@ public class RecipientExt
     /// Gets or sets the email address of the recipient
     /// </summary>
     [JsonPropertyName("emailAddress")]
-    public string EmailAddress { get; set; }
+    public string? EmailAddress { get; set; }
 }

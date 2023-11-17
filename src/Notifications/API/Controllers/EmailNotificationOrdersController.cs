@@ -1,17 +1,16 @@
 ﻿using Altinn.Notifications.Core.Models;
+using Altinn.Notifications.Core.Models.Orders;
+using Altinn.Notifications.Core.Services.Interfaces;
+using Altinn.Notifications.Extensions;
+using Altinn.Notifications.Mappers;
+using Altinn.Notifications.Models;
+using Altinn.Notifications.Validators;
 
 using FluentValidation;
 
-using LocalTest.Notifications.API.Controllers;
-using LocalTest.Notifications.API.Extensions;
-using LocalTest.Notifications.API.Mappers;
-using LocalTest.Notifications.API.Models;
-using LocalTest.Notifications.Core.Models.Orders;
-using LocalTest.Notifications.Core.Services;
-
 using Microsoft.AspNetCore.Mvc;
 
-namespace LocalTest.Notifications.Controllers;
+namespace Altinn.Notifications.Controllers;
 
 /// <summary>
 /// Controller for all operations related to email notification orders

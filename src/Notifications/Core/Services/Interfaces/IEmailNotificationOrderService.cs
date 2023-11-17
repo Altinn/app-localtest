@@ -1,8 +1,7 @@
 ﻿using Altinn.Notifications.Core.Models;
+using Altinn.Notifications.Core.Models.Orders;
 
-using LocalTest.Notifications.Core.Models.Orders;
-
-namespace LocalTest.Notifications.Core.Services;
+namespace Altinn.Notifications.Core.Services.Interfaces;
 
 /// <summary>
 /// Interface for the email notification order service
@@ -14,5 +13,5 @@ public interface IEmailNotificationOrderService
     /// </summary>
     /// <param name="orderRequest">The email notification order request</param>
     /// <returns>The registered notification order</returns>
-    public Task<(NotificationOrder Order, ServiceError Error)> RegisterEmailNotificationOrder(NotificationOrderRequest orderRequest);
+    public Task<(NotificationOrder? Order, ServiceError? Error)> RegisterEmailNotificationOrder(NotificationOrderRequest orderRequest);
 }

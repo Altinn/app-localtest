@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-using LocalTest.Notifications.Models.API;
+using Altinn.Notifications.Models;
 
-namespace LocalTest.Notifications.API.Models
+namespace Altinn.Notifications.Core.Models.Notification
 {
     /// <summary>
     /// EmailNotificationWithResultExt class

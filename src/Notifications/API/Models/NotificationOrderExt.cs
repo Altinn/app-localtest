@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace LocalTest.Notifications.API.Models;
+namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// A class representing a registered notification order. 
@@ -20,7 +20,7 @@ public class NotificationOrderExt : IBaseNotificationOrderExt
 
     /// <inheritdoc/>>
     [JsonPropertyName("sendersReference")]
-    public string SendersReference { get; set; }
+    public string? SendersReference { get; set; }
 
     /// <inheritdoc/>>
     [JsonPropertyName("requestedSendTime")]
@@ -45,7 +45,7 @@ public class NotificationOrderExt : IBaseNotificationOrderExt
     /// Gets or sets the emailTemplate
     /// </summary>
     [JsonPropertyName("emailTemplate")]
-    public EmailTemplateExt EmailTemplate { get; set; }
+    public EmailTemplateExt? EmailTemplate { get; set; }
 
     /// <summary>
     /// Gets or sets the link of the order

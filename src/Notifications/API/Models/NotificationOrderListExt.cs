@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace LocalTest.Notifications.API.Models;
+namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// A class representing a list of notification order. 

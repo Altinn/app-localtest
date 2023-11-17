@@ -1,8 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-using LocalTest.Notifications.Models.API;
-
-namespace LocalTest.Notifications.API.Models;
+namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// A class representing a registered notification order with status information. 
@@ -18,7 +16,7 @@ public class NotificationOrderWithStatusExt : IBaseNotificationOrderExt
 
     /// <inheritdoc/>>
     [JsonPropertyName("sendersReference")]
-    public string SendersReference { get; set; }
+    public string? SendersReference { get; set; }
 
     /// <inheritdoc/>>
     [JsonPropertyName("requestedSendTime")]
@@ -47,5 +45,5 @@ public class NotificationOrderWithStatusExt : IBaseNotificationOrderExt
     /// Gets or sets the summary of the notifiications statuses
     /// </summary>
     [JsonPropertyName("notificationsStatusSummary")]
-    public NotificationsStatusSummaryExt NotificationsStatusSummary { get; set; }
+    public NotificationsStatusSummaryExt? NotificationsStatusSummary { get; set; }
 }

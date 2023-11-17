@@ -1,7 +1,8 @@
 ﻿using System;
-using LocalTest.Notifications.Core.Models.Enums;
 
-namespace LocalTest.Notifications.Core.Models.Notification;
+using Altinn.Notifications.Core.Enums;
+
+namespace Altinn.Notifications.Core.Models.Notification;
 
 /// <summary>
 /// Interface describing a base notification.

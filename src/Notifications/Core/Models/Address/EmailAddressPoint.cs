@@ -1,6 +1,6 @@
-﻿using LocalTest.Notifications.Core.Models.Enums;
+﻿using Altinn.Notifications.Core.Enums;
 
-namespace LocalTest.Notifications.Core.Models.Address;
+namespace Altinn.Notifications.Core.Models.Address;
 
 /// <summary>
 /// A class represeting an address point

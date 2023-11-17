@@ -1,14 +1,14 @@
-﻿using LocalTest.Notifications.API.Models;
-using LocalTest.Notifications.Core.Models.Orders;
+﻿using Altinn.Notifications.Core.Models.Orders;
+using Altinn.Notifications.Models;
 
-namespace LocalTest.Notifications.API.Extensions;
+namespace Altinn.Notifications.Extensions;
 
 /// <summary>
 /// Extension class for ResourceLinks
 /// </summary>
 public static class ResourceLinkExtensions
 {
-    private static string _baseUri;
+    private static string? _baseUri;
 
     /// <summary>
     /// Initializes the ResourceLinkExtensions with the base URI from settings.

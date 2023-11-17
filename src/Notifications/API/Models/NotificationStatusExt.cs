@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace LocalTest.Notifications.API.Models;
+namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// An abstrct  class representing a status overview of a notification channels
@@ -16,7 +16,7 @@ public abstract class NotificationStatusExt
     /// <summary>
     /// Gets or sets the number of generated notifications
     /// </summary>    
-    [JsonPropertyName("generated")]
+    [JsonPropertyName("generated")] 
     public int Generated { get; set; }
 
     /// <summary>

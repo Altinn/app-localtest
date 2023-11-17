@@ -1,9 +1,9 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using LocalTest.Notifications.Core.Models.Enums;
+using Altinn.Notifications.Core.Enums;
 
-namespace LocalTest.Notifications.Core.Models.Notification;
+namespace Altinn.Notifications.Core.Models.Notification;
 
 /// <summary>
 /// A class representing a send operation update object
@@ -43,7 +43,7 @@ public class SendOperationResult
     /// <summary>
     /// Deserialize a json string into the <see cref="SendOperationResult"/>
     /// </summary>
-    public static SendOperationResult Deserialize(string serializedString)
+    public static SendOperationResult? Deserialize(string serializedString)
     {
         return JsonSerializer.Deserialize<SendOperationResult>(
             serializedString,
@@ -59,7 +59,7 @@ public class SendOperationResult
     /// </summary>
     public static bool TryParse(string input, out SendOperationResult value)
     {
-        SendOperationResult parsedOutput;
+        SendOperationResult? parsedOutput;
         value = new SendOperationResult();
 
         if (string.IsNullOrEmpty(input))

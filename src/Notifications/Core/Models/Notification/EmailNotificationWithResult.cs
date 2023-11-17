@@ -1,7 +1,7 @@
-﻿using LocalTest.Notifications.Core.Models.Enums;
-using LocalTest.Notifications.Core.Models.Recipients;
+﻿using Altinn.Notifications.Core.Enums;
+using Altinn.Notifications.Core.Models.Recipients;
 
-namespace LocalTest.Notifications.Core.Models.Notification
+namespace Altinn.Notifications.Core.Models.Notification
 {
     /// <summary>
     /// An implementation of <see cref="INotificationWithResult{TClass, T}"/> for email notifications"/>

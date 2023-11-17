@@ -1,7 +1,7 @@
-﻿using LocalTest.Notifications.Core.Models.Enums;
-using LocalTest.Notifications.Core.Models.Orders;
+﻿using Altinn.Notifications.Core.Enums;
+using Altinn.Notifications.Core.Models.Orders;
 
-namespace LocalTest.Notifications.Core.Repository;
+namespace Altinn.Notifications.Core.Repository.Interfaces;
 
 /// <summary>
 /// Interface describing all repository actions for notification orders
@@ -32,7 +32,7 @@ public interface IOrderRepository
     /// <param name="id">The order id</param>
     /// <param name="creator">The short name of the order creator</param>
     /// <returns>A notification order if it exists</returns>
-    public Task<NotificationOrder> GetOrderById(Guid id, string creator);
+    public Task<NotificationOrder?> GetOrderById(Guid id, string creator);
 
     /// <summary>
     /// Gets an order with process and notification status based on the provided id within the provided creator scope
@@ -40,7 +40,7 @@ public interface IOrderRepository
     /// <param name="id">The order id</param>
     /// <param name="creator">The short name of the order creator</param>
     /// <returns>A notification order if it exists</returns>
-    public Task<NotificationOrderWithStatus> GetOrderWithStatusById(Guid id, string creator);
+    public Task<NotificationOrderWithStatus?> GetOrderWithStatusById(Guid id, string creator);
 
     /// <summary>
     /// Gets an order based on the provided senders reference within the provided creator scope

@@ -1,10 +1,10 @@
 ﻿using System.Text.RegularExpressions;
 
+using Altinn.Notifications.Models;
+
 using FluentValidation;
 
-using LocalTest.Notifications.API.Models;
-
-namespace LocalTest.Notifications.Controllers;
+namespace Altinn.Notifications.Validators;
 
 /// <summary>
 /// Class containing validation logic for the <see cref="EmailNotificationOrderRequestExt"/> model
@@ -35,7 +35,7 @@ public class EmailNotificationOrderRequestValidator : AbstractValidator<EmailNot
     /// </summary>
     /// <param name="email">The string to validate as an email address</param>
     /// <returns>A boolean indicating that the email is valid or not</returns>
-    internal static bool IsValidEmail(string email)
+    internal static bool IsValidEmail(string? email)
     {
         if (string.IsNullOrEmpty(email))
         {

@@ -1,8 +1,7 @@
-﻿using LocalTest.Notifications.Core.Models;
-using LocalTest.Notifications.Core.Models.Enums;
-using LocalTest.Notifications.Core.Models.NotificationTemplate;
+﻿using Altinn.Notifications.Core.Enums;
+using Altinn.Notifications.Core.Models.NotificationTemplate;
 
-namespace LocalTest.Notifications.Core.Models.Orders;
+namespace Altinn.Notifications.Core.Models.Orders;
 
 /// <summary>
 /// Class representing a notification order request
@@ -12,7 +11,7 @@ public class NotificationOrderRequest
     /// <summary>
     /// Gets the senders reference of a notification
     /// </summary>
-    public string SendersReference { get; internal set; }
+    public string? SendersReference { get; internal set; }
 
     /// <summary>
     /// Gets the templates to create notifications based of
@@ -42,7 +41,7 @@ public class NotificationOrderRequest
     /// <summary>
     /// Initializes a new instance of the <see cref="NotificationOrderRequest"/> class.
     /// </summary>
-    public NotificationOrderRequest(string sendersReference, string creatorShortName, List<INotificationTemplate> templates, DateTime requestedSendTime, NotificationChannel notificationChannel, List<Recipient> recipients)
+    public NotificationOrderRequest(string? sendersReference, string creatorShortName, List<INotificationTemplate> templates, DateTime requestedSendTime, NotificationChannel notificationChannel, List<Recipient> recipients)
     {
         SendersReference = sendersReference;
         Creator = new(creatorShortName);

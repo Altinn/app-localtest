@@ -1,6 +1,6 @@
-﻿using LocalTest.Notifications.Core.Models.Address;
+﻿using Altinn.Notifications.Core.Models.Address;
 
-namespace LocalTest.Notifications.Core.Models;
+namespace Altinn.Notifications.Core.Models;
 
 /// <summary>
 /// Class representing a notification recipient

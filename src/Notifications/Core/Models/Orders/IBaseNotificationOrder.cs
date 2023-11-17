@@ -1,7 +1,6 @@
-﻿using LocalTest.Notifications.Core.Models;
-using LocalTest.Notifications.Core.Models.Enums;
+﻿using Altinn.Notifications.Core.Enums;
 
-namespace LocalTest.Notifications.Core.Models.Orders;
+namespace Altinn.Notifications.Core.Models.Orders;
 
 /// <summary>
 /// Class representing the base properties of a notification order
@@ -16,7 +15,7 @@ public interface IBaseNotificationOrder
     /// <summary>
     /// Gets the senders reference of a notification
     /// </summary>
-    public string SendersReference { get; }
+    public string? SendersReference { get; }
 
     /// <summary>
     /// Gets the requested send time for the notification(s)

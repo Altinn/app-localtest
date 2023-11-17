@@ -1,8 +1,9 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using LocalTest.Notifications.Core.Models.Enums;
 
-namespace LocalTest.Notifications.Core.Models;
+using Altinn.Notifications.Core.Enums;
+
+namespace Altinn.Notifications.Core.Models;
 
 /// <summary>
 /// Class representing an email

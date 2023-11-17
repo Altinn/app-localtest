@@ -1,4 +1,4 @@
-namespace LocalTest.Notifications.Core.Models.Recipients;
+namespace Altinn.Notifications.Core.Models.Recipients;
 
 /// <summary>
 /// Class representing an email recipient
@@ -8,7 +8,7 @@ public class EmailRecipient
     /// <summary>
     /// Gets or sets the recipient id
     /// </summary>
-    public string RecipientId { get; set; } = null;
+    public string? RecipientId { get; set; } = null;
 
     /// <summary>
     /// Gets or sets the toaddress

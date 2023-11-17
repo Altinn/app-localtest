@@ -1,4 +1,4 @@
-﻿namespace LocalTest.Notifications.Extensions;
+﻿namespace Altinn.Notifications.Extensions;
 
 /// <summary>
 /// Extensions for HTTP Context
@@ -11,7 +11,7 @@ public static class HttpContextExtensions
     /// <remarks>
     /// The org item is populated to the http context by the <see cref="Middleware.OrgExtractorMiddleware"/>
     /// </remarks>
-    public static string GetOrg(this HttpContext context)
+    public static string? GetOrg(this HttpContext context)
     {
         return context.Items["Org"] as string;
     }

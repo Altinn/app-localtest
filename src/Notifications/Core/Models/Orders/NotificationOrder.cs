@@ -1,10 +1,10 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using LocalTest.Notifications.Core.Models;
-using LocalTest.Notifications.Core.Models.Enums;
-using LocalTest.Notifications.Core.Models.NotificationTemplate;
 
-namespace LocalTest.Notifications.Core.Models.Orders;
+using Altinn.Notifications.Core.Enums;
+using Altinn.Notifications.Core.Models.NotificationTemplate;
+
+namespace Altinn.Notifications.Core.Models.Orders;
 
 /// <summary>
 /// Class representing a notification order
@@ -15,7 +15,7 @@ public class NotificationOrder : IBaseNotificationOrder
     public Guid Id { get; internal set; } = Guid.Empty;
 
     /// <inheritdoc/>>
-    public string SendersReference { get; internal set; }
+    public string? SendersReference { get; internal set; }
 
     /// <inheritdoc/>>
     public DateTime RequestedSendTime { get; internal set; }
@@ -42,7 +42,7 @@ public class NotificationOrder : IBaseNotificationOrder
     /// <summary>
     /// Initializes a new instance of the <see cref="NotificationOrder"/> class.
     /// </summary>
-    public NotificationOrder(Guid id, string sendersReference, List<INotificationTemplate> templates, DateTime requestedSendTime, NotificationChannel notificationChannel, Creator creator, DateTime created, List<Recipient> recipients)
+    public NotificationOrder(Guid id, string? sendersReference, List<INotificationTemplate> templates, DateTime requestedSendTime, NotificationChannel notificationChannel, Creator creator, DateTime created, List<Recipient> recipients)
     {
         Id = id;
         SendersReference = sendersReference;
@@ -80,7 +80,7 @@ public class NotificationOrder : IBaseNotificationOrder
     /// <summary>
     /// Deserialize a json string into the <see cref="NotificationOrder"/>
     /// </summary>
-    public static NotificationOrder Deserialize(string serializedString)
+    public static NotificationOrder? Deserialize(string serializedString)
     {
         return JsonSerializer.Deserialize<NotificationOrder>(
             serializedString,
@@ -96,7 +96,7 @@ public class NotificationOrder : IBaseNotificationOrder
     /// </summary>
     public static bool TryParse(string input, out NotificationOrder value)
     {
-        NotificationOrder parsedOutput;
+        NotificationOrder? parsedOutput;
         value = new NotificationOrder();
 
         if (string.IsNullOrEmpty(input))

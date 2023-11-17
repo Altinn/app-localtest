@@ -1,4 +1,4 @@
-﻿namespace LocalTest.Notifications.Core.Models.Enums;
+﻿namespace Altinn.Notifications.Core.Enums;
 
 /// <summary>
 /// Base class for send result of a notification

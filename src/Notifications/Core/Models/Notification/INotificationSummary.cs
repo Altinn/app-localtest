@@ -1,4 +1,4 @@
-﻿namespace LocalTest.Notifications.Core.Models.Notification;
+﻿namespace Altinn.Notifications.Core.Models.Notification;
 
 /// <summary>
 /// An interface representing a summary of the notifications related to an order
@@ -14,7 +14,7 @@ public interface INotificationSummary<TClass>
     /// <summary>
     /// Gets the senders reference of the notification order
     /// </summary>    
-    public string SendersReference { get; }
+    public string? SendersReference { get; }
 
     /// <summary>
     /// Gets the number of generated notifications

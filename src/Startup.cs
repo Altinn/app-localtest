@@ -6,6 +6,12 @@ using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Notifications.Core.Repository.Interfaces;
+using Altinn.Notifications.Core.Services;
+using Altinn.Notifications.Core.Services.Interfaces;
+using Altinn.Notifications.Extensions;
+using Altinn.Notifications.Models;
+using Altinn.Notifications.Validators;
 using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
@@ -25,9 +31,12 @@ using Altinn.ResourceRegistry.Core;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
+using FluentValidation;
+
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Helpers;
+using LocalTest.Notifications.Persistence.Repository;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Authorization.Implementation;
@@ -43,28 +52,12 @@ using LocalTest.Services.Storage.Implementation;
 using LocalTest.Services.TestData;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.StaticFiles.Infrastructure;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 using ResourceRegistryTest.Mocks;
-using FluentValidation;
-using LocalTest.Notifications.Controllers;
-using LocalTest.Notifications.Extensions;
-using LocalTest.Notifications.Models.API;
-using LocalTest.Notifications.Core.Services;
-using LocalTest.Notifications.Core.Repository;
-using LocalTest.Notifications.Persistence.Repository;
-using LocalTest.Notifications.API.Models;
-using LocalTest.Notifications.API.Extensions;
 
 namespace LocalTest
 {

@@ -1,4 +1,4 @@
-﻿namespace LocalTest.Notifications.Core.Services;
+﻿namespace Altinn.Notifications.Core.Services.Interfaces;
 
 /// <summary>
 /// Interface describing a dateTime service

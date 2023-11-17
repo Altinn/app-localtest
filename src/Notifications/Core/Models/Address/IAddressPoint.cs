@@ -1,7 +1,8 @@
 ﻿using System.Text.Json.Serialization;
-using LocalTest.Notifications.Core.Models.Enums;
 
-namespace LocalTest.Notifications.Core.Models.Address;
+using Altinn.Notifications.Core.Enums;
+
+namespace Altinn.Notifications.Core.Models.Address;
 
 /// <summary>
 /// Interface describing an address point

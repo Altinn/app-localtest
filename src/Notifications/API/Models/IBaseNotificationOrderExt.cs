@@ -1,4 +1,4 @@
-﻿namespace LocalTest.Notifications.API.Models;
+﻿namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// A class representing the base properties of a registered notification order. 
@@ -21,7 +21,7 @@ public interface IBaseNotificationOrderExt
     /// <summary>
     /// Gets or sets the senders reference of the notification
     /// </summary>
-    public string SendersReference { get; set; }
+    public string? SendersReference { get; set; }
 
     /// <summary>
     /// Gets or sets the requested send time of the notification

@@ -1,13 +1,11 @@
-﻿namespace LocalTest.Notifications.Core.Models.Enums;
+﻿namespace Altinn.Notifications.Core.Enums;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 /// <summary>
-/// Enum describing the various processing states of a notification order
+/// Enum  describing available notification template types
 /// </summary>
-public enum OrderProcessingStatus
+public enum NotificationTemplateType
 {
-    Registered,
-    Processing,
-    Completed
+    Email
 }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

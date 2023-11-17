@@ -1,9 +1,11 @@
 ﻿using System.Text.Json;
 
+using Altinn.Notifications.Core.Enums;
+using Altinn.Notifications.Core.Models.Orders;
+using Altinn.Notifications.Core.Repository.Interfaces;
+
 using LocalTest.Configuration;
-using LocalTest.Notifications.Core.Models.Enums;
-using LocalTest.Notifications.Core.Models.Orders;
-using LocalTest.Notifications.Core.Repository;
+
 using Microsoft.Extensions.Options;
 
 namespace LocalTest.Notifications.Persistence.Repository
@@ -72,6 +74,5 @@ namespace LocalTest.Notifications.Persistence.Repository
         {
             return _localPlatformSettings.LocalTestingStorageBasePath + _localPlatformSettings.NotificationsStorageFolder;
         }
-
     }
 }

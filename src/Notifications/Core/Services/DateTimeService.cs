@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace LocalTest.Notifications.Core.Services;
+using Altinn.Notifications.Core.Services.Interfaces;
+
+namespace Altinn.Notifications.Core.Services;
 
 /// <summary>
 /// Implemntation of a dateTime service

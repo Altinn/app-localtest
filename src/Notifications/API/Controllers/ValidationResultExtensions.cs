@@ -2,7 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace LocalTest.Notifications.API.Controllers;
+namespace Altinn.Notifications.Validators;
 
 /// <summary>
 /// Extension class for <see cref="ValidationResult"/>

@@ -1,6 +1,6 @@
-﻿using LocalTest.Notifications.Core.Models.Enums;
+﻿using Altinn.Notifications.Core.Enums;
 
-namespace LocalTest.Notifications.Core.Models.NotificationTemplate;
+namespace Altinn.Notifications.Core.Models.NotificationTemplate;
 
 /// <summary>
 /// Template for an email notification
@@ -33,7 +33,7 @@ public class EmailTemplate : INotificationTemplate
     /// <summary>
     /// Initializes a new instance of the <see cref="EmailTemplate"/> class.
     /// </summary>
-    public EmailTemplate(string fromAddress, string subject, string body, EmailContentType contentType)
+    public EmailTemplate(string? fromAddress, string subject, string body, EmailContentType contentType)
     {
         FromAddress = fromAddress ?? string.Empty;
         Subject = subject;

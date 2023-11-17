@@ -1,11 +1,10 @@
 ﻿using Altinn.Notifications.Core.Models;
+using Altinn.Notifications.Core.Models.NotificationTemplate;
+using Altinn.Notifications.Core.Models.Orders;
+using Altinn.Notifications.Core.Repository.Interfaces;
+using Altinn.Notifications.Core.Services.Interfaces;
 
-using LocalTest.Models;
-using LocalTest.Notifications.Core.Models.NotificationTemplate;
-using LocalTest.Notifications.Core.Models.Orders;
-using LocalTest.Notifications.Core.Repository;
-
-namespace LocalTest.Notifications.Core.Services;
+namespace Altinn.Notifications.Core.Services;
 
 /// <summary>
 /// Implementation of the <see cref="IEmailNotificationOrderService"/>. 
@@ -29,7 +28,7 @@ public class EmailNotificationOrderService : IEmailNotificationOrderService
     }
 
     /// <inheritdoc/>
-    public async Task<(NotificationOrder Order, ServiceError Error)> RegisterEmailNotificationOrder(NotificationOrderRequest orderRequest)
+    public async Task<(NotificationOrder? Order, ServiceError? Error)> RegisterEmailNotificationOrder(NotificationOrderRequest orderRequest)
     {
         Guid orderId = _guid.NewGuid();
         DateTime created = _dateTime.UtcNow();

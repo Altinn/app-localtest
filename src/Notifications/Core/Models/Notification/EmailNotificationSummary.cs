@@ -1,4 +1,4 @@
-﻿namespace LocalTest.Notifications.Core.Models.Notification
+﻿namespace Altinn.Notifications.Core.Models.Notification
 {
     /// <summary>
     /// An implementation of <see cref="INotificationSummary{TClass}"/> for email notifications"/>
@@ -9,7 +9,7 @@
         public Guid OrderId { get; set; }
 
         /// <inheritdoc/>  
-        public string SendersReference { get; set; }
+        public string? SendersReference { get; set; }
 
         /// <inheritdoc/>  
         public int Generated { get; internal set; }

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace LocalTest.Notifications.API.Models
+namespace Altinn.Notifications.Core.Models.Notification
 {
     /// <summary>
     /// A class representing an email notification summary 
@@ -20,7 +20,7 @@ namespace LocalTest.Notifications.API.Models
         /// The senders reference
         /// </summary>
         [JsonPropertyName("sendersReference")]
-        public string SendersReference { get; set; }
+        public string? SendersReference { get; set; }
 
         /// <summary>
         /// The number of generated email notifications

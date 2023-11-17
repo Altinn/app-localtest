@@ -1,6 +1,6 @@
-﻿using LocalTest.Notifications.Core.Models.Enums;
+﻿using Altinn.Notifications.Core.Enums;
 
-namespace LocalTest.Notifications.Core.Models.Notification;
+namespace Altinn.Notifications.Core.Models.Notification;
 
 /// <summary>
 /// Class describing an email notification and extends the <see cref="INotification{EmailNotificationResultType}"/>
@@ -22,7 +22,7 @@ public class EmailNotification : INotification<EmailNotificationResultType>
     /// <summary>
     /// Get the id of the recipient of the email notification
     /// </summary>
-    public string RecipientId { get; internal set; }
+    public string? RecipientId { get; internal set; }
 
     /// <summary>
     /// Get or sets the to address of the email notification

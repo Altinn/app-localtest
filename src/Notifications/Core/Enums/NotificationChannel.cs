@@ -1,4 +1,4 @@
-﻿namespace LocalTest.Notifications.Core.Models.Enums;
+﻿namespace Altinn.Notifications.Core.Enums;
 
 /// <summary>
 /// Enum describing available notification channels.

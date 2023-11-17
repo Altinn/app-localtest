@@ -1,12 +1,12 @@
-﻿using LocalTest.Notifications.API.Extensions;
-using LocalTest.Notifications.API.Models;
-using LocalTest.Notifications.Core.Models;
-using LocalTest.Notifications.Core.Models.Address;
-using LocalTest.Notifications.Core.Models.Enums;
-using LocalTest.Notifications.Core.Models.NotificationTemplate;
-using LocalTest.Notifications.Core.Models.Orders;
+﻿using Altinn.Notifications.Core.Enums;
+using Altinn.Notifications.Core.Models;
+using Altinn.Notifications.Core.Models.Address;
+using Altinn.Notifications.Core.Models.NotificationTemplate;
+using Altinn.Notifications.Core.Models.Orders;
+using Altinn.Notifications.Extensions;
+using Altinn.Notifications.Models;
 
-namespace LocalTest.Notifications.API.Mappers;
+namespace Altinn.Notifications.Mappers;
 
 /// <summary>
 /// Mapper for <see cref="EmailNotificationOrderRequestExt"/>
@@ -156,7 +156,7 @@ public static class OrderMapper
         return orderExt;
     }
 
-    private static string GetEmailFromAddressList(List<IAddressPoint> addressPoints)
+    private static string? GetEmailFromAddressList(List<IAddressPoint> addressPoints)
     {
         var emailAddressPoint = addressPoints
             .Find(a => a.AddressType.Equals(AddressType.Email))

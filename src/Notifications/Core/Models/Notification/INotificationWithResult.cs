@@ -1,4 +1,4 @@
-﻿namespace LocalTest.Notifications.Core.Models.Notification;
+﻿namespace Altinn.Notifications.Core.Models.Notification;
 
 /// <summary>
 /// Interface representing a notification object with send result data

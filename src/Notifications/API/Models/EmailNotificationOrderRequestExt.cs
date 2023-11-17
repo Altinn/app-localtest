@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace LocalTest.Notifications.API.Models;
+namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// Class representing an email notiication order request
@@ -39,7 +39,7 @@ public class EmailNotificationOrderRequestExt
     /// Gets or sets the senders reference on the notification
     /// </summary>
     [JsonPropertyName("sendersReference")]
-    public string SendersReference { get; set; }
+    public string? SendersReference { get; set; }
 
     /// <summary>
     /// Gets or sets the list of recipients
