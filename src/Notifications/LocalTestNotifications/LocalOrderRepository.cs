@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿#nullable enable
+using System.Text.Json;
 
 using Altinn.Notifications.Core.Enums;
 using Altinn.Notifications.Core.Models.Orders;
@@ -10,12 +11,12 @@ using Microsoft.Extensions.Options;
 
 namespace LocalTest.Notifications.Persistence.Repository
 {
-    public class OrderRepository : IOrderRepository
+    public class LocalOrderRepository : IOrderRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly JsonSerializerOptions _serializerOptions;
 
-        public OrderRepository(
+        public LocalOrderRepository(
             IOptions<LocalPlatformSettings> localPlatformSettings)
         {
             _localPlatformSettings = localPlatformSettings.Value;
@@ -34,13 +35,13 @@ namespace LocalTest.Notifications.Persistence.Repository
 
             string serializedOrder = JsonSerializer.Serialize(order, _serializerOptions);
             FileInfo file = new FileInfo(path);
-            file.Directory.Create();
+            file.Directory?.Create();
             File.WriteAllText(file.FullName, serializedOrder);
 
             return Task.FromResult(order);
         }
 
-        public Task<NotificationOrder> GetOrderById(Guid id, string creator)
+        public Task<NotificationOrder?> GetOrderById(Guid id, string creator)
         {
             throw new NotImplementedException();
         }
@@ -50,7 +51,7 @@ namespace LocalTest.Notifications.Persistence.Repository
             throw new NotImplementedException();
         }
 
-        public Task<NotificationOrderWithStatus> GetOrderWithStatusById(Guid id, string creator)
+        public Task<NotificationOrderWithStatus?> GetOrderWithStatusById(Guid id, string creator)
         {
             throw new NotImplementedException();
         }

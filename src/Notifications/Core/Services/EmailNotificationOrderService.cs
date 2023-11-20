@@ -1,9 +1,12 @@
 ﻿#nullable enable
+using Altinn.Notifications.Core.Configuration;
 using Altinn.Notifications.Core.Models;
 using Altinn.Notifications.Core.Models.NotificationTemplate;
 using Altinn.Notifications.Core.Models.Orders;
 using Altinn.Notifications.Core.Repository.Interfaces;
 using Altinn.Notifications.Core.Services.Interfaces;
+
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Notifications.Core.Services;
 
@@ -20,12 +23,12 @@ public class EmailNotificationOrderService : IEmailNotificationOrderService
     /// <summary>
     /// Initializes a new instance of the <see cref="EmailNotificationOrderService"/> class.
     /// </summary>
-    public EmailNotificationOrderService(IOrderRepository repository, IGuidService guid, IDateTimeService dateTime)
+    public EmailNotificationOrderService(IOrderRepository repository, IGuidService guid, IDateTimeService dateTime, IOptions<NotificationOrderConfig> config)
     {
         _repository = repository;
         _guid = guid;
         _dateTime = dateTime;
-        _defaultFromAddress = "localtest@altinn.no";
+        _defaultFromAddress = config.Value.DefaultEmailFromAddress;
     }
 
     /// <inheritdoc/>

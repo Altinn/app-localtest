@@ -1,4 +1,5 @@
-﻿namespace Altinn.Notifications.Models;
+﻿#nullable enable
+namespace Altinn.Notifications.Models;
 
 /// <summary>
 /// Enum describing available notification channels.

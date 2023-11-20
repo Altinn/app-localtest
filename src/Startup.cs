@@ -6,12 +6,6 @@ using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
-using Altinn.Notifications.Core.Repository.Interfaces;
-using Altinn.Notifications.Core.Services;
-using Altinn.Notifications.Core.Services.Interfaces;
-using Altinn.Notifications.Extensions;
-using Altinn.Notifications.Models;
-using Altinn.Notifications.Validators;
 using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
@@ -31,12 +25,10 @@ using Altinn.ResourceRegistry.Core;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
-using FluentValidation;
-
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Helpers;
-using LocalTest.Notifications.Persistence.Repository;
+using LocalTest.Notifications.LocalTestNotifications;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Authorization.Implementation;
@@ -129,18 +121,11 @@ namespace LocalTest
             services.AddTransient<IAuthorizationHandler, StorageAccessHandler>();
             services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
 
-            // Notifications services     
-            ValidatorOptions.Global.LanguageManager.Enabled = false;
+            // Notifications services
+            
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-            ResourceLinkExtensions.Initialize(generalSettings.BaseUrl);
-
-            services
-                .AddSingleton<IValidator<EmailNotificationOrderRequestExt>, EmailNotificationOrderRequestValidator>()
-                .AddSingleton<IOrderRepository, OrderRepository>()
-                .AddSingleton<IGuidService, GuidService>()
-                .AddSingleton<IDateTimeService, DateTimeService>()
-                .AddSingleton<IEmailNotificationOrderService, EmailNotificationOrderService>();
-
+            services.AddNotificationServices(generalSettings.BaseUrl);
+            
             // Storage services
             services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
             services.AddTransient<IAuthorization, AuthorizationService>();

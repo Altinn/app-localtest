@@ -1,4 +1,5 @@
-﻿namespace Altinn.Notifications.Core.Models.Notification;
+﻿#nullable enable
+namespace Altinn.Notifications.Core.Models.Notification;
 
 /// <summary>
 /// Interface representing a notification object with send result data
