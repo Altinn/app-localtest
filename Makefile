@@ -13,3 +13,8 @@ start-localtest-new-pdf:
 .PHONY: stop-localtest-new-pdf
 stop-localtest-new-pdf:
 	docker-compose --profile localtest --profile pdf down
+
+.PHONY: start-localtest-multiapp
+start-localtest-multiapp:
+	docker-compose --profile pdf up -d --build
+	dotnet run --project src/LocalTest.csproj
