@@ -18,6 +18,8 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
 ### Setup
 
+#### Using docker 
+
 1. Clone the `app-localtest` repository to a local folder and move into the folder.
 
    ```shell
@@ -33,6 +35,10 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
    :information_source: If you are using linux or mac you can use the Makefile to build and run the containers.
 
+    ```shell
+    make docker-start-localtest
+    ```
+   
     This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `docker stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
 
 3. Start your app
@@ -47,6 +53,46 @@ These are some of the required steps, tips, and tricks when it comes to running 
     ```
 
      Run the application:
+
+     ```shell
+     dotnet run
+    ```
+
+#### Using podman
+
+1. Clone the `app-localtest` repository to a local folder and move into the folder.
+
+   ```shell
+   git clone https://github.com/Altinn/app-localtest
+   cd app-localtest
+   ```
+
+2. Build and run the containers in the background.
+
+    ```shell
+    podman compose --file podman-compose.yml up -d --build
+    ```
+
+   :information_source: If you are using linux or mac you can use the Makefile to build and run the containers.
+
+   ```shell
+   make podman-start-localtest
+   ```
+
+   This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `podman stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
+
+3. Start your app
+   _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
+
+   Move into the `App` folder of your application.
+
+   Example: If your application is named `my-awesome-app` and is located in the folder `C:\my_applications`, run the following command:
+
+    ```shell
+    cd C:\my_applications\my-awasome-app\App
+    ```
+
+   Run the application:
 
      ```shell
      dotnet run
