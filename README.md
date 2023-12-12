@@ -28,15 +28,12 @@ These are some of the required steps, tips, and tricks when it comes to running 
 2. Build and run the containers in the background. 
 
     ```shell
-    docker compose --profile localtest up -d --build
+    docker compose up -d --build
     ```
 
-    This mode supports running one app at a time. If you need to run multiple apps at once, remove `--profile localtest` from the command and follow the instructions below to run LocalTest locally outside Docker.
+   :information_source: If you are using linux or mac you can use the Makefile to build and run the containers.
 
-   Note: Using profiles requires docker-compose version [1.28.0](https://docs.docker.com/compose/release-notes/#1280)
-   or later. If your version does not support profiles and you prefer to run localtest in Docker, make sure to follow
-   [the instructions to install more a recent version](https://docs.docker.com/engine/install/) or comment out
-   the profile restriction in `docker-compose.yml`.
+    This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `docker stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
 
 3. Start your app
     _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
@@ -90,8 +87,7 @@ The setup described above (LocalTest running in Docker) currently only supports 
 yourself needing to run multiple apps at the same time, or if you need to debug or develop LocalTest, a local setup is
 preferred.
 
-:information_source: If you're already running LocalTest in Docker, be sure to stop the container or make sure you
-omit `--profile localtest` when running `docker compose`.
+:information_source: If you're already running LocalTest in Docker, be sure to stop the container with `docker stop localtest`
 
 **Configuration of LocalTest**
 The LocalTest application acts as an emulator of the Altinn 3 platform services. It provides things like authentication,
