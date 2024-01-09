@@ -1,4 +1,4 @@
-version: '3.6'
+version: "3.6"
 
 networks:
   altinntestlocal_network:
@@ -18,6 +18,7 @@ services:
       - NGINX_PORT=80
       - TEST_DOMAIN=${TEST_DOMAIN:-local.altinn.cloud}
       - AMUI_TEST_DOMAIN=${AMUI_TEST_DOMAIN:-am.ui.local.altinn.cloud}
+      - INTERNAL_DOMAIN=host.docker.internal
       - ALTINN3LOCAL_PORT=${ALTINN3LOCAL_PORT:-80}
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
       - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
@@ -27,7 +28,6 @@ services:
       - ./loadbalancer/templates:/etc/nginx/templates/:ro
       - ./loadbalancer/www:/www/:ro
 
-
   altinn_platform_pdf:
     container_name: altinn-pdf
     platform: linux/amd64
@@ -36,15 +36,13 @@ services:
     networks:
       - altinntestlocal_network
     ports:
-     - "5070:5070"
+      - "5070:5070"
     extra_hosts:
       - "host.docker.internal:host-gateway"
   altinn_pdf_service:
     container_name: altinn-pdf-service
     image: browserless/chrome:1-puppeteer-19.2.2
     restart: always
-    profiles:
-        - pdf
     networks:
       - altinntestlocal_network
     ports:
