@@ -13,11 +13,7 @@
 	"validFrom": "2020-03-04T18:04:27.27",
 	"identifier": "appid-401",
 	"isComplete": false,
-	"description": {
-		"en": "The Flowergarden",
-		"nb": "Blomsterhagen",
-		"nn": "Blomsterhagen"
-	},
+	"description": null,
 	"resourceType": "MaskinportenSchema",
 	"thematicArea": null,
 	"isPublicService": true,

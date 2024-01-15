@@ -14,5 +14,9 @@
   {
     "Type": "altinn",
     "value": "UTOMR"
+  },
+  {
+    "Type": "altinn",
+    "value": "KONT"
   }
 ]

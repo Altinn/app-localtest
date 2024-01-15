@@ -13,11 +13,7 @@
 	"validFrom": "2020-03-04T18:04:27.27",
 	"identifier": "appid-402",
 	"isComplete": false,
-	"description": {
-		"en": "The Magic Closet",
-		"nb": "Det magiske klesskapet",
-		"nn": "Det magiske klesskapet"
-	},
+	"description": null,
 	"resourceType": "MaskinportenSchema",
 	"thematicArea": null,
 	"isPublicService": true,

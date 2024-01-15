@@ -1,6 +1,6 @@
 {
-  "OrgNumber": "311685678",
-  "Name": "Oslos Vakreste Borettslag",
+  "OrgNumber": "923609016",
+  "Name": "EAS Health Consulting",
   "UnitType": "AS",
   "TelephoneNumber": "12345678",
   "MobileNumber": "92010000",
@@ -12,6 +12,5 @@
   "MailingPostalCity": "Oslo",
   "BusinessAddress": "Sofies Gate 2",
   "BusinessPostalCode": "0170",
-  "BusinessPostalCity": "By",
-  "UnitStatus": "SLET"
+  "BusinessPostalCity": "By"
 }
