@@ -5,12 +5,14 @@ networks:
     external: false
 
 services:
-  local.altinn.cloud:
+  localtest_loadbalancer:
     container_name: localtest-loadbalancer
     image: nginx:alpine-perl
     restart: always
     networks:
-      - altinntestlocal_network
+      altinntestlocal_network:
+        aliases:
+          - ${TEST_DOMAIN:-local.altinn.cloud}
     ports:
       - "${ALTINN3LOCAL_PORT:-8080}:80"
     environment:
@@ -22,8 +24,8 @@ services:
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
       - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
     volumes:
-      - ./loadbalancer/templates:/etc/nginx/templates/:ro
-      - ./loadbalancer/www:/www/:ro
+      - ./loadbalancer/templates/:/etc/nginx/templates/:z
+      - ./loadbalancer/www/:/www/:z
 
 
   altinn_platform_pdf:
