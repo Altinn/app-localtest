@@ -28,14 +28,10 @@ services:
         source: ./loadbalancer/templates/
         target: /etc/nginx/templates/
         read_only: true
-        bind:
-          selinux: Z
       - type: bind
         source: ./loadbalancer/www/
         target: /www/
         read_only: true
-        bind:
-          selinux: Z
 
 
   altinn_platform_pdf:
@@ -80,8 +76,6 @@ services:
         source: ./testdata/
         target: /testdata/
         read_only: true
-        bind:
-          selinux: Z
 
 volumes:
   AltinnPlatformLocal:
