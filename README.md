@@ -32,8 +32,8 @@ These are some of the required steps, tips, and tricks when it comes to running 
     ```shell
     docker compose up -d --build
     ```
-
-   :information_source: If you are using linux or mac you can use the Makefile to build and run the containers.
+   > [!NOTE]
+   > If you are using linux or mac you can use the Makefile to build and run the containers.
 
     ```shell
     make docker-start-localtest
@@ -69,14 +69,15 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
 2. Build and run the containers in the background.
 
-   If you are using an mac with either a M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
-   This can be done by setting the environment variable `PODMAN_MACHINE_DRIVER` to `applehv` before running the command below.
-   If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
-    
-   ```
-   [machine]
-     provider = "applehv"
-   ```
+   > [!IMPORTANT]
+   > If you are using an mac with either a M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
+   > This can be done by setting the environment variable `PODMAN_MACHINE_DRIVER` to `applehv` before running the command below.
+   > If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
+   >  
+   > ```
+   > [machine]
+   >   provider = "applehv"
+   > ```
 
    Start the containers with the following command:
 
@@ -84,23 +85,25 @@ These are some of the required steps, tips, and tricks when it comes to running 
    podman compose --file podman-compose.yml up -d --build
    ```
 
-   :information_source: If you are using linux or mac you can use the Makefile to build and run the containers.
+   > [!NOTE]
+   > If you are using linux or mac you can use the Makefile to build and run the containers.
 
    ```shell
    make podman-start-localtest
    ```
 
-   :warning_source: Are you running podman version < 4.7.0 you need to use the following command instead:
-
-   ```shell
-   podman-compose --file podman-compose.yml up -d --build
-   ```
-   
-   or the make command:
-
-   ```shell
-   make podman-compose-start-localtest
-   ```
+   > [!IMPORTANT]
+   > Are you running podman version < 4.7.0 you need to use the following command instead:
+   > 
+   > ```shell
+   > podman-compose --file podman-compose.yml up -d --build
+   > ```
+   > 
+   > or the make command:
+   > 
+   > ```shell
+   > make podman-compose-start-localtest
+   > ```
 
    This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `podman stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
 
