@@ -71,6 +71,8 @@ podman compose --file podman-compose.yml up -d --build
 > make podman-compose-start-localtest
 > ```
 
+Localtest should now be runningn on port 8080 and can be accessed on <http://local.altinn.cloud:8080>.
+
 #### Option B: Start the containers using Docker
 
 This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `docker stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
@@ -86,6 +88,7 @@ docker compose up -d --build
 > make docker-start-localtest
 > ```
 
+Localtest should now be runningn on port 80 and can be accessed on <http://local.altinn.cloud:80>.
 
 #### Start your app
 _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
