@@ -4,6 +4,12 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
+  - [Clone the repository](#clone-the-repository)
+  - [Option A: Start the containers using podman](#option-a-start-the-containers-using-podman)
+  - [Option B: Start the containers using Docker](#option-b-start-the-containers-using-docker)
+  - [Start your app](#start-your-app)
+- [Changing configuration](#changing-configuration)
+- [Multiple apps at the same time (running LocalTest locally)](#multiple-apps-at-the-same-time-running-localtest-locally)
 - [Changing test data](#changing-test-data)
 
 ### Prerequisites
@@ -66,9 +72,12 @@ podman compose --file podman-compose.yml up -d --build
 > ```
 
 #### Option B: Start the containers using Docker
+
+This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `docker stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
+
 ```shell
-    docker compose up -d --build
-    ```
+docker compose up -d --build
+```
    
 > [!NOTE]
 > If you are using linux or mac you can use the Makefile to build and run the containers.
@@ -76,8 +85,6 @@ podman compose --file podman-compose.yml up -d --build
 > ```shell
 > make docker-start-localtest
 > ```
-   
-This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `docker stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
 
 
 #### Start your app
