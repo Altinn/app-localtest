@@ -32,6 +32,7 @@ These are some of the required steps, tips, and tricks when it comes to running 
     ```shell
     docker compose up -d --build
     ```
+   
    > [!NOTE]
    > If you are using linux or mac you can use the Makefile to build and run the containers.
 
@@ -69,15 +70,15 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
 2. Build and run the containers in the background.
 
-> [!IMPORTANT]
-> If you are using an mac with either a M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
-> This can be done by setting the environment variable `PODMAN_MACHINE_DRIVER` to `applehv` before running the command below.
-> If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
->  
-> ```
-> [machine]
->   provider = "applehv"
-> ```
+    > [!IMPORTANT]
+    > If you are using an mac with either a M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
+    > This can be done by setting the environment variable `PODMAN_MACHINE_DRIVER` to `applehv` before running the command below.
+    > If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
+    >  
+    > ```
+    > [machine]
+    >   provider = "applehv"
+    > ```
 
    Start the containers with the following command:
 
