@@ -18,112 +18,84 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
 ### Setup
 
-#### Using docker 
+#### Clone the repository
 
-1. Clone the `app-localtest` repository to a local folder and move into the folder.
+```shell
+git clone https://github.com/Altinn/app-localtest
+cd app-localtest
+ ```
 
-   ```shell
-   git clone https://github.com/Altinn/app-localtest
-   cd app-localtest
-   ```
+#### Option A: Start the containers using podman
 
-2. Build and run the containers in the background. 
+This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `podman stop localtest` and follow the instructions below to run LocalTest locally outside Docker/Podman.
 
-    ```shell
+> [!IMPORTANT]
+> If you are using an mac with either a M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
+> This can be done by setting the environment variable `PODMAN_MACHINE_DRIVER` to `applehv` before running the command below.
+> If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
+>  
+> ```
+> [machine]
+>   provider = "applehv"
+> ```
+
+Start the containers with the following command:
+
+```shell
+podman compose --file podman-compose.yml up -d --build
+```
+
+> [!NOTE]
+> If you are using linux or mac you can use the Makefile to build and run the containers.
+> 
+> ```shell
+> make podman-start-localtest
+> ```
+
+> [!IMPORTANT]
+> Are you running podman version < 4.7.0 you need to use the following command instead:
+> 
+> ```shell
+> podman-compose --file podman-compose.yml up -d --build
+> ```
+> 
+> or the make command:
+> 
+> ```shell
+> make podman-compose-start-localtest
+> ```
+
+#### Option B: Start the containers using Docker
+```shell
     docker compose up -d --build
     ```
    
-   > [!NOTE]
-   > If you are using linux or mac you can use the Makefile to build and run the containers.
-
-    ```shell
-    make docker-start-localtest
-    ```
+> [!NOTE]
+> If you are using linux or mac you can use the Makefile to build and run the containers.
+> 
+> ```shell
+> make docker-start-localtest
+> ```
    
-    This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `docker stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
+This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `docker stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
 
-3. Start your app
-    _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
-  
-    Move into the `App` folder of your application.
 
-     Example: If your application is named `my-awesome-app` and is located in the folder `C:\my_applications`, run the following command:
+#### Start your app
+_This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
 
-    ```shell
-    cd C:\my_applications\my-awasome-app\App
-    ```
+Move into the `App` folder of your application.
 
-     Run the application:
+Example: If your application is named `my-awesome-app` and is located in the folder `C:\my_applications`, run the following command:
 
-     ```shell
-     dotnet run
-    ```
+```shell
+cd C:\my_applications\my-awasome-app\App
+```
 
-#### Using podman
+Run the application:
 
-1. Clone the `app-localtest` repository to a local folder and move into the folder.
-
-   ```shell
-   git clone https://github.com/Altinn/app-localtest
-   cd app-localtest
-   ```
-
-2. Build and run the containers in the background.
-
-    > [!IMPORTANT]
-    > If you are using an mac with either a M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
-    > This can be done by setting the environment variable `PODMAN_MACHINE_DRIVER` to `applehv` before running the command below.
-    > If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
-    >  
-    > ```
-    > [machine]
-    >   provider = "applehv"
-    > ```
-
-   Start the containers with the following command:
-
-   ```shell
-   podman compose --file podman-compose.yml up -d --build
-   ```
-
-   > [!NOTE]
-   > If you are using linux or mac you can use the Makefile to build and run the containers.
-
-   ```shell
-   make podman-start-localtest
-   ```
-
-   > [!IMPORTANT]
-   > Are you running podman version < 4.7.0 you need to use the following command instead:
-   > 
-   > ```shell
-   > podman-compose --file podman-compose.yml up -d --build
-   > ```
-   > 
-   > or the make command:
-   > 
-   > ```shell
-   > make podman-compose-start-localtest
-   > ```
-
-   This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `podman stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
-
-3. Start your app
-   _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
-
-   Move into the `App` folder of your application.
-
-   Example: If your application is named `my-awesome-app` and is located in the folder `C:\my_applications`, run the following command:
-
-    ```shell
-    cd C:\my_applications\my-awasome-app\App
-    ```
-
-   Run the application:
-
-     ```shell
-     dotnet run
-    ```
+ ```shell
+ dotnet run
+```
 
 The app and local platform services are now running locally. The app can be accessed on <http://local.altinn.cloud>.
 
