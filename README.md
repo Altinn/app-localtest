@@ -14,7 +14,7 @@ These are some of the required steps, tips, and tricks when it comes to running 
     - Also
       install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (
       f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
-4. [Docker Desktop](https://www.docker.com/products/docker-desktop) (Linux users can also use native Docker)
+4. [Docker Desktop](https://www.docker.com/products/docker-desktop) (possible licencing fee) or [Podman](https://podman.io)/[Podman Desktop](https://podman-desktop.io) (Linux users can also use native Docker)
 
 ### Setup
 
@@ -69,6 +69,15 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
 2. Build and run the containers in the background.
 
+    If you are using an mac with either a M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
+    This can be done by setting the environment variable `PODMAN_MACHINE_DRIVER` to `applehv` before running the command below.
+    If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
+    ```
+    [machine]
+      provider = "applehv"
+    ```
+   
+    
     ```shell
     podman compose --file podman-compose.yml up -d --build
     ```
@@ -77,6 +86,18 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
    ```shell
    make podman-start-localtest
+   ```
+
+   :warning_source: Are you running podman version < 4.7.0 you need to use the following command instead:
+
+    ```shell
+   podman-compose --file podman-compose.yml up -d --build
+   ```
+   
+    or the make command:
+
+    ```shell
+   make podman-compose-start-localtest
    ```
 
    This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `podman stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
