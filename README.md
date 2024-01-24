@@ -78,6 +78,8 @@ These are some of the required steps, tips, and tricks when it comes to running 
      provider = "applehv"
    ```
 
+   Start the containers with the following command:
+
    ```shell
    podman compose --file podman-compose.yml up -d --build
    ```
