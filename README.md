@@ -69,18 +69,18 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
 2. Build and run the containers in the background.
 
-    If you are using an mac with either a M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
-    This can be done by setting the environment variable `PODMAN_MACHINE_DRIVER` to `applehv` before running the command below.
-    If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
-    ```
-    [machine]
-      provider = "applehv"
-    ```
-   
+   If you are using an mac with either a M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
+   This can be done by setting the environment variable `PODMAN_MACHINE_DRIVER` to `applehv` before running the command below.
+   If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
     
-    ```shell
-    podman compose --file podman-compose.yml up -d --build
-    ```
+   ```
+   [machine]
+     provider = "applehv"
+   ```
+
+   ```shell
+   podman compose --file podman-compose.yml up -d --build
+   ```
 
    :information_source: If you are using linux or mac you can use the Makefile to build and run the containers.
 
@@ -90,13 +90,13 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
    :warning_source: Are you running podman version < 4.7.0 you need to use the following command instead:
 
-    ```shell
+   ```shell
    podman-compose --file podman-compose.yml up -d --build
    ```
    
-    or the make command:
+   or the make command:
 
-    ```shell
+   ```shell
    make podman-compose-start-localtest
    ```
 
