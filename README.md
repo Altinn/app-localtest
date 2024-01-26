@@ -11,6 +11,7 @@ These are some of the required steps, tips, and tricks when it comes to running 
 - [Changing configuration](#changing-configuration)
 - [Multiple apps at the same time (running LocalTest locally)](#multiple-apps-at-the-same-time-running-localtest-locally)
 - [Changing test data](#changing-test-data)
+- [Known issues](#known-issues)
 
 ### Prerequisites
 
@@ -212,3 +213,21 @@ This would be required if your app requires a role which none of the test users 
 
 4. Save and close the file
 5. Restart LocalTest
+
+### Known issues
+
+#### Bind mounts folders gives permission denied. Nginx returns default page
+
+On some nix systems you might experience problems with the bind mounts used by the containers. If you get the default nginx page when trying to access local.altinn.cloud this might be the case.
+
+To verify this you can run the following command:
+
+```shell
+podman container exec -it localtest-loadbalancer cat /etc/nginx/templates/nginx.conf.conf
+```
+
+if you get a permission denied message this verifies that the bind mount is not working. A best effort fix for this is to run the following command:
+
+```shell
+make podman-selinux-bind-hack
+```
