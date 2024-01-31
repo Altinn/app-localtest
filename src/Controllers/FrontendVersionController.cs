@@ -26,6 +26,7 @@ public class FrontendVersionController : Controller
     public async Task<ActionResult> Index([FromServices] HttpClient client)
     {
         var versionFromCookie = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
+        var localFrontednPort = Environment.GetEnvironmentVariable("LOCAL_FRONTEND_PORT") ?? "8080";
 
         var frontendVersion = new FrontendVersion()
         {
@@ -39,8 +40,8 @@ public class FrontendVersionController : Controller
                     },
                     new ()
                     {
-                        Text = "localhost:8080 (local dev)",
-                        Value = "http://localhost:8080/"
+                        Text = $"localhost:{localFrontednPort} (local dev)",
+                        Value = $"http://localhost:{localFrontednPort}/"
                     }
                 }
         };

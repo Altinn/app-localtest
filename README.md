@@ -21,8 +21,9 @@ These are some of the required steps, tips, and tricks when it comes to running 
     - Also
       install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (
       f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
-4. [Docker Desktop](https://www.docker.com/products/docker-desktop) (possible licencing fee) or [Podman](https://podman.io)/[Podman Desktop](https://podman-desktop.io) (Linux users can also use native Docker)
-
+4. [Podman Desktop](https://podman-desktop.io)/[Podman](https://podman.io) (Linux users can also use native Docker) or [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows and Mac) This might require you to purchase a license.
+On mac with apple silicone (M1, M2, M3):
+5. [vfkit](https://github.com/crc-org/vfkit?tab=readme-ov-file#installation)
 ### Setup
 
 #### Clone the repository
@@ -37,8 +38,9 @@ cd app-localtest
 This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `podman stop localtest` and follow the instructions below to run LocalTest locally outside Docker/Podman.
 
 > [!IMPORTANT]
-> If you are using an mac with either a M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
-> This can be done by setting the environment variable `PODMAN_MACHINE_DRIVER` to `applehv` before running the command below.
+> If you are using an mac with either a M1, M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
+> This can be done by setting the environment variable `CONTAINERS_MACHINE_PROVIDER` to `applehv` before running the command below.
+> To add this to your zsh profile run the following command: `echo "export CONTAINERS_MACHINE_PROVIDER=applehv" >> ~/.zprofile`
 > If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
 >  
 > ```
