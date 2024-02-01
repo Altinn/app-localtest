@@ -74,7 +74,7 @@ podman compose --file podman-compose.yml up -d --build
 > make podman-compose-start-localtest
 > ```
 
-Localtest should now be runningn on port 8080 and can be accessed on <http://local.altinn.cloud:8080>.
+Localtest should now be runningn on port 8000 and can be accessed on <http://local.altinn.cloud:8000>.
 
 #### Option B: Start the containers using Docker
 
