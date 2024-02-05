@@ -234,8 +234,10 @@ if you get a permission denied message this verifies that the bind mount is not 
 make podman-selinux-bind-hack
 ```
 
-#### Running Podman on windows with Hyper-V Firewall enabled requires opening port 5005 to the host machine
+#### Localtest reports that the app is not running even though it is
 
-Check if _local rule merging_ is set to _"No"_ as described [here](https://learn.microsoft.com/en-us/windows/wsl/troubleshooting#wsl-has-no-network-connection-on-my-work-machine-or-in-an-enterprise-environment).
+If localtest and you app is running, but localtest reports that the app is not running, it might be that the port is not open in the firewall.
+
+You can verify if the app is running by opening `http://localhost:5005/<app-org-name>/<app-name>/swagger/index.html` (remember to replace `<app-org-name>` and `<app-name>` with the correct values).
 
 If this is the case you can open a Windows Powershell as administrator and run the script `OpenAppPortInHyperVFirewall.ps1` located in the `scripts` folder.
