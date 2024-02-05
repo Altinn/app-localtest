@@ -233,3 +233,9 @@ if you get a permission denied message this verifies that the bind mount is not 
 ```shell
 make podman-selinux-bind-hack
 ```
+
+#### Running Podman on windows with Hyper-V Firewall enabled requires opening port 5005 to the host machine
+
+Check if _local rule merging_ is set to _"No"_ as described [here](https://learn.microsoft.com/en-us/windows/wsl/troubleshooting#wsl-has-no-network-connection-on-my-work-machine-or-in-an-enterprise-environment).
+
+If this is the case you can open a Windows Powershell as administrator and run the script `OpenAppPortInHyperVFirewall.ps1` located in the `scripts` folder.
