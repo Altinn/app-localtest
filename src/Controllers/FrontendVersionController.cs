@@ -66,7 +66,7 @@ public class FrontendVersionController : Controller
         var options = new CookieOptions
         {
             Expires = DateTime.MaxValue,
-            HttpOnly = true,
+            HttpOnly = false,
         };
         ICookieManager cookieManager = new ChunkingCookieManager();
         if (string.IsNullOrWhiteSpace(frontendVersion.Version))

@@ -1,0 +1,116 @@
+<div class="alert alert-info" role="alert">
+  Experimental preview using the local PDF generator.
+</div>
+
+
+<div id="missingParamsError" class="alert alert-error" style="display: none;" role="alert">
+  Query parameters org, app and instance are required.
+</div>
+
+<div id="missingCookieError" class="alert alert-error" style="display: none;" role="alert">
+  Authentication failed, please try the "Refresh authentication" button.
+</div>
+
+<div id="failedError" class="alert alert-error" style="display: none;" role="alert">
+  PDF generation failed, refresh to try again.
+</div>
+
+<iframe id="pdfIframe" title="" style="display: none; width: 100%; height: 100vh; margin-bottom: -16px"></iframe>
+
+<script>
+  function generatePDF() {
+    let params = new URLSearchParams(window.location.search);
+    let org = params.get('org');
+    let app = params.get('app');
+    let instance = params.get('instance');
+    let language = params.get('lang') ?? 'nb';
+
+    if (!org || !app || !instance){
+      document.querySelector('#missingParamsError').style.display = 'block';
+      return;
+    }
+
+    let cookies = document.cookie
+    .split(';')
+    .map(v => v.split('='))
+    .reduce((acc, v) => {
+      acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
+      return acc;
+    }, {});
+
+    let token = cookies['AltinnStudioRuntime'];
+    let partyId = cookies['AltinnPartyId'];
+    let frontendVersion = cookies['frontendVersion'];
+
+    if (!token || !partyId) {
+      document.querySelector('#missingCookieError').style.display = 'block';
+      return;
+    }
+
+    let pdfGeneratorUrl = `http://${window.location.host}/pdfservice/pdf`;
+    let pdfUrl = `http://local.altinn.cloud/${org}/${app}/#/instance/${instance}?pdf=1&lang=${language}`;
+    let pdfCookies = [
+      {
+        name: 'AltinnStudioRuntime',
+        domain: 'local.altinn.cloud',
+        sameSite: 'Lax',
+        value: token
+      },
+      {
+        name: 'AltinnPartyId',
+        domain: 'local.altinn.cloud',
+        sameSite: 'Lax',
+        value: partyId
+      }
+    ];
+
+    if (frontendVersion) {
+      frontendVersion = frontendVersion.replace("localhost", "host.containers.internal");
+      pdfCookies = [{
+        name: 'frontendVersion',
+        domain: 'local.altinn.cloud',
+        value: frontendVersion
+      }, ...pdfCookies];
+    }
+
+    let requestBody = {
+      url: pdfUrl,
+      cookies: pdfCookies,
+      waitFor: "#readyForPrint",
+        setJavaScriptEnabled: true,
+        options: {
+          displayHeaderFooter: false,
+          printBackground: true,
+          format: "A4",
+          margin: {
+            top: "0.75in",
+            left: "0.75in",
+            bottom: "0.75in",
+            right: "0.75in"
+          }
+        }
+      };
+
+    fetch(pdfGeneratorUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    })
+    .then(response => response.blob())
+    .then(blob => {
+      let objectUrl = URL.createObjectURL(blob);
+      let pdfIframe = document.querySelector('#pdfIframe');
+
+      pdfIframe.src = objectUrl;
+      pdfIframe.style.display = 'block';
+    })
+    .catch(() => {
+      document.querySelector('#failedError').style.display = 'block';
+      return;
+    });
+  }
+
+  generatePDF();
+</script>
