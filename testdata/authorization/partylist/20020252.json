@@ -1,0 +1,26 @@
+[
+  {
+    "partyId": "50707389",
+    "partyTypeName": 1,
+    "ssn": "19895199357",
+    "unitType": null,
+    "name": "INTELLIGENT ALBATROSS",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  },
+  {
+    "partyId": "51317934",
+    "partyTypeName": 2,
+    "OrgNumber": "313523497",
+    "unitType": "AS",
+    "name": "RAKRYGGET UNG TIGER AS",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "partyId": "50019992",
+    "partyTypeName": 1,
+    "ssn": "09026102194",
+    "unitType": null,
+    "name": "JARLE GJERSTAD",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  },
+  {
+    "partyId": "50067798",
+    "partyTypeName": 2,
+    "OrgNumber": "910510789",
+    "unitType": "AS",
+    "name": " VIKESÅ OG ÅLVUNDFJORD",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  }
+]
