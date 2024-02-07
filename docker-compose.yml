@@ -17,6 +17,7 @@ services:
       - NGINX_HOST=localhost
       - NGINX_PORT=80
       - TEST_DOMAIN=${TEST_DOMAIN:-local.altinn.cloud}
+      - HOST_DOMAIN=host.docker.internal
       - AMUI_TEST_DOMAIN=${AMUI_TEST_DOMAIN:-am.ui.local.altinn.cloud}
       - INTERNAL_DOMAIN=host.docker.internal
       - ALTINN3LOCAL_PORT=${ALTINN3LOCAL_PORT:-80}
