@@ -1,4 +1,4 @@
-version: '3.6'
+version: "3.6"
 
 networks:
   altinntestlocal_network:
@@ -34,7 +34,6 @@ services:
         target: /www/
         read_only: true
 
-
   altinn_platform_pdf:
     container_name: altinn-pdf
     platform: linux/amd64
@@ -43,10 +42,11 @@ services:
     networks:
       - altinntestlocal_network
     ports:
-     - "5070:5070"
+      - "5070:5070"
+
   altinn_pdf_service:
     container_name: altinn-pdf-service
-    image: browserless/chrome:1-puppeteer-19.2.2
+    image: browserless/chrome:1-puppeteer-21.3.6
     restart: always
     networks:
       - altinntestlocal_network
