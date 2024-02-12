@@ -64,10 +64,7 @@ services:
       - GeneralSettings__HostName=${TEST_DOMAIN:-local.altinn.cloud}
     volumes:
       - ./testdata/:/testdata/:ro,z
-      - type: volume
-        source: AltinnPlatformLocal
-        target: /AltinnPlatformLocal/
-        read_only: false
+      - AltinnPlatformLocal:/AltinnPlatformLocal/:rw
 
 volumes:
   AltinnPlatformLocal:
