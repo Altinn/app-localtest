@@ -1,0 +1,67 @@
+{
+	"identifier": "digdir-maskinportenschemaid-671",
+	"title": {
+		"en": "Altinn Service Owner API: App Instances (full access)",
+		"nb": "Altinn tjenesteeier-API: Appinstanser (full tilgang)",
+		"nn": "Altinn tenesteeigar-API: Appinstanser (full tilgang)"
+	},
+	"description": {},
+	"rightDescription": {
+		"en": "Delegates access to APIs that can read all instances of apps issued by that application owner. Also provides access to instantiate apps as well as updating and validating data, metadata and process state on app instances. Only applies to Altinn 3.",
+		"nb": "Delegerer tilgang til API-er som gir mulighet til å hente alle instanser av apps tihørende tjenesteeieren. Gir også tilgang til å instansiere apper samt oppdatere og validere data, metadata og prosesstilstand på appinstanser. Gjelder kun Altinn 3.",
+		"nn": "Delegerer tilgang til API-er som gir moglegheit til å henta alle instansar av apps tihørende tenesteeigaren. Gir òg tilgang til å instansiere apper og dessutan oppdatera og validera data, metadata og prosesstilstand på appinstanser. Gjelder berre Altinn 3."
+	},
+	"homepage": "www.altinn.no",
+	"status": "Active",
+	"isPartOf": "Altinn",
+	"resourceReferences": [
+		{
+			"referenceSource": "Altinn2",
+			"reference": "09ef4c47-0493-49ba-ba69-7028df31134c",
+			"referenceType": "DelegationSchemeId"
+		},
+		{
+			"referenceSource": "Altinn2",
+			"reference": "altinn:serviceowner/instances.read",
+			"referenceType": "MaskinportenScope"
+		},
+		{
+			"referenceSource": "Altinn2",
+			"reference": "altinn:serviceowner/instances.write",
+			"referenceType": "MaskinportenScope"
+		},
+		{
+			"referenceSource": "Altinn2",
+			"reference": "AppId:671",
+			"referenceType": "ServiceCode"
+		},
+		{
+			"referenceSource": "Altinn2",
+			"reference": "1",
+			"referenceType": "ServiceEditionCode"
+		}
+	],
+	"delegable": true,
+	"visible": true,
+	"hasCompetentAuthority": {
+		"organization": "991825827",
+		"orgcode": "DIGDIR",
+		"name": {
+			"en": "Norwegian Digitalisation Agency",
+			"nb": "Digitaliseringsdirektoratet",
+			"nn": "Digitaliseringsdirektoratet"
+		}
+	},
+	"keywords": [],
+	"limitedByRRR": false,
+	"selfIdentifiedUserEnabled": false,
+	"enterpriseUserEnabled": false,
+	"resourceType": "MaskinportenSchema",
+	"authorizationReference": [
+		{
+			"id": "urn:altinn:resource",
+			"value": "digdir-maskinportenschemaid-671"
+		}
+	]
+}
+
