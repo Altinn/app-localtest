@@ -309,32 +309,43 @@ namespace LocalTest.Controllers
                 var properProfile = await _userProfileService.GetUser(profile.UserId);
 
                 var userParties = await _partiesService.GetParties(properProfile.UserId);
-
-                if (userParties.Count == 1)
+                
+                if (userParties == null)
                 {
-                    // Don't add singe party users to a group
-                    var party = userParties.First();
-                    userItems.Add(new()
-                    {
-                        Value = properProfile.UserId + "." + party.PartyId,
-                        Text = party.Name,
-                    });
-                }
-                else
-                {
-                    // When a user represents multiple parties, add it to a group, so that it stands out visually
                     var group = new SelectListGroup()
                     {
                         Name = properProfile.Party.Name,
                     };
-                    foreach (var party in userParties)
+                }
+                
+                if (userParties != null)
+                {
+                    if (userParties.Count == 1)
                     {
+                        // Don't add singe party users to a group
+                        var party = userParties.First();
                         userItems.Add(new()
                         {
                             Value = properProfile.UserId + "." + party.PartyId,
-                            Text = $"{party.Name} ({party.PartyTypeName})",
-                            Group = group,
+                            Text = party.Name,
                         });
+                    }
+                    else
+                    {
+                        // When a user represents multiple parties, add it to a group, so that it stands out visually
+                        var group = new SelectListGroup()
+                        {
+                            Name = properProfile.Party.Name,
+                        };
+                        foreach (var party in userParties)
+                        {
+                            userItems.Add(new()
+                            {
+                                Value = properProfile.UserId + "." + party.PartyId,
+                                Text = $"{party.Name} ({party.PartyTypeName})",
+                                Group = group,
+                            });
+                        }
                     }
                 }
             }

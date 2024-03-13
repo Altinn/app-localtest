@@ -2,6 +2,10 @@
     {	
         "Type": "altinn",	
         "value": "DAGL"	
+    },
+    {	
+        "Type": "altinn",	
+        "value": "APIADM"
     }
 ]
   
