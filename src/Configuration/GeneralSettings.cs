@@ -106,6 +106,11 @@ namespace LocalTest.Configuration
         }
 
         /// <summary>
+        /// Gets or sets the hostname for accessmanagement UI
+        /// </summary>
+        public string AMHostname { get; set; }
+
+        /// <summary>
         /// Get value from environment variable with key equals "GeneralSettings__" + propertyName or directly from
         /// the property if the environment variable is missing.
         /// </summary>
