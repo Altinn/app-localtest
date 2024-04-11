@@ -1,0 +1,49 @@
+{
+    "title": {
+      "en": "The Magic Closet - linked service",
+      "nb": "Det magiske klesskapet - lenketjeneste",
+      "nn": "Det magiske klesskapet - lenketjeneste"
+    },
+    "sector": null,
+    "status": null,
+    "limitedByRRR": false,
+    "SelfIdentifiedUserEnabled": false,
+    "EnterpriseUserEnabled": false,
+    "homepage": null,
+    "isPartOf": null,
+    "keywords": null,
+    "identifier": "appid-502",
+    "contactPoints": [
+      {
+        "category": "Some category",
+        "email": "email@someemaildigdir.no",
+        "telephone": "12345678",
+        "contactPage": "Some page (webpage maybe?)"
+      }
+    ],
+    "visible": true,
+    "delegable": true,
+    "description": {
+      "en": "The Magic Closet",
+      "nb": "Det magiske klesskapet",
+      "nn": "Det magiske klesskapet"
+    },
+    "resourceType": "Default",
+    "thematicArea": null,
+    "isPublicService": true,
+    "rightDescription": {
+      "en": "Gives access to Narnia.",
+      "nb": "Gir tilgang til Narnia.",
+      "nn": "Gir tilgang til Narnia."
+    },
+    "resourceReferences": [],
+    "hasCompetentAuthority": {
+      "orgcode": "NRNA",
+      "organization": "777777777",
+      "name": {
+        "en": "NARNIA",
+        "nb": "NARNIA",
+        "nn": "NARNIA"
+      }
+    }
+  },
