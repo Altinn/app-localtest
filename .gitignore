@@ -15,3 +15,5 @@ AltinnPlatformLocal/
 # Visual Studio
 .vs/
 *.user
+
+.mono/

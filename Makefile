@@ -28,3 +28,17 @@ podman-selinux-bind-hack:
 	podman container run -v ./testdata/:/testdata/:Z --rm -it --entrypoint cat nginx:alpine-perl /testdata/authorization/claims/1337.json > /dev/null
 	podman container run -v ./loadbalancer/templates/:/testdata/:Z --rm -it --entrypoint cat nginx:alpine-perl /testdata/nginx.conf.conf > /dev/null
 	podman container run -v ./loadbalancer/www/:/testdata/:Z --rm -it --entrypoint cat nginx:alpine-perl /testdata/502App.html > /dev/null
+
+.PHONY: up
+up:
+	docker compose up -d --build
+	docker compose -f docker-compose.monitoring.yml up -d
+
+.PHONY: down
+down:
+	docker compose down -v
+	docker compose -f docker-compose.monitoring.yml down -v
+
+sync-dashboards:
+	curl -o ./infra/grafana-dashboards/aspnetcore.json https://raw.githubusercontent.com/dotnet/aspire/main/src/Grafana/dashboards/aspnetcore.json
+	curl -o ./infra/grafana-dashboards/aspnetcore-endpoint.json https://raw.githubusercontent.com/dotnet/aspire/main/src/Grafana/dashboards/aspnetcore-endpoint.json
