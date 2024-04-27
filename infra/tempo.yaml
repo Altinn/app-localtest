@@ -27,7 +27,7 @@ metrics_generator:
   storage:
     path: /tmp/tempo/generator/wal
     remote_write:
-      - url: http://mimir:9009/api/v1/push
+      - url: http://monitoring_mimir:9009/api/v1/push
         send_exemplars: true
   registry:
     collection_interval: 5s

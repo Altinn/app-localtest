@@ -6,7 +6,7 @@ datasources:
     uid: mimir
     access: proxy
     orgId: 1
-    url: http://mimir:9009/prometheus
+    url: http://monitoring_mimir:9009/prometheus
     basicAuth: false
     isDefault: false
     version: 1
@@ -22,7 +22,7 @@ datasources:
     uid: loki
     access: proxy
     orgId: 1
-    url: http://loki:3100
+    url: http://monitoring_loki:3100
     basicAuth: false
     isDefault: true
     version: 1
@@ -41,7 +41,7 @@ datasources:
     uid: tempo
     access: proxy
     orgId: 1
-    url: http://tempo:3200
+    url: http://monitoring_tempo:3200
     basicAuth: false
     isDefault: false
     version: 1

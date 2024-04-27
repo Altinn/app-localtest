@@ -8,15 +8,15 @@ processors:
 
 exporters:
   otlp/tempo:
-    endpoint: tempo:4317
+    endpoint: monitoring_tempo:4317
     tls:
       insecure: true
   otlphttp/loki:
-    endpoint: http://loki:3100/otlp
+    endpoint: http://monitoring_loki:3100/otlp
     tls:
       insecure: true
   prometheusremotewrite/mimir:
-    endpoint: http://mimir:9009/api/v1/push
+    endpoint: http://monitoring_mimir:9009/api/v1/push
     tls:
       insecure: true
 
