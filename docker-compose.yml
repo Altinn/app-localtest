@@ -85,13 +85,16 @@ services:
     volumes:
       - ./infra/otel-collector.yaml:/etc/otel-collector.yaml
     ports:
-      - "1888:1888"   # pprof extension
       - "8888:8888"   # Prometheus metrics exposed by the collector
       - "8889:8889"   # Prometheus exporter metrics
       - "13133:13133" # health_check extension
       - "4317:4317"   # OTLP gRPC receiver
-      - "55679:55679" # zpages extension
     profiles: ["monitoring"]
+    depends_on:
+      - monitoring_mimir
+      - monitoring_tempo
+      - monitoring_loki
+      - monitoring_clickhouse
 
   monitoring_tempo:
     container_name: monitoring_tempo
@@ -146,8 +149,29 @@ services:
       - GF_AUTH_DISABLE_LOGIN_FORM=true
       - GF_FEATURE_TOGGLES_ENABLE="traceqlEditor traceToMetrics metricsSummary"
       - GF_LOG_LEVEL=error
+      - GF_INSTALL_PLUGINS=grafana-clickhouse-datasource,vertamedia-clickhouse-datasource
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=vertamedia-clickhouse-datasource
     ports:
       - "3000:3000"
+    profiles: ["monitoring"]
+    depends_on:
+      - monitoring_otel_collector
+      - monitoring_mimir
+      - monitoring_tempo
+      - monitoring_loki
+      - monitoring_clickhouse
+
+  monitoring_clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    container_name: monitoring_clickhouse
+    networks:
+      - altinntestlocal_network
+    volumes:
+      - ./infra/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml
+      - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
+    ports:
+      - "8123:8123"
+      - "9000:9000"
     profiles: ["monitoring"]
 
 volumes:
