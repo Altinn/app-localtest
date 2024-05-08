@@ -29,6 +29,9 @@ podman-selinux-bind-hack:
 	podman container run -v ./loadbalancer/templates/:/testdata/:Z --rm -it --entrypoint cat nginx:alpine-perl /testdata/nginx.conf.conf > /dev/null
 	podman container run -v ./loadbalancer/www/:/testdata/:Z --rm -it --entrypoint cat nginx:alpine-perl /testdata/502App.html > /dev/null
 
+.PHONY: k6
+k6:
+	docker run --rm -i --net=host grafana/k6:master-with-browser run - <k6/loadtest.js
 
 .PHONY: sync-dashboards
 sync-dashboards:

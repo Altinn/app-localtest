@@ -65,27 +65,3 @@ datasources:
         query: '{$${__tags}} | trace_id="$${__span.traceId}" | span_id="$${__span.spanId}"'
       tracesToMetrics:
         datasourceUid: mimir
-
-  - name: ClickHouse-official
-    type: grafana-clickhouse-datasource
-    jsonData:
-      defaultDatabase: otel
-      port: 9000
-      server: monitoring_clickhouse
-      username: default
-      tlsSkipVerify: false
-      logs:
-        defaultDatabase: otel
-        defaultTable: otel_logs
-        otelEnabled: true
-        otelVersion: '1.2.9'
-      traces:
-        defaultDatabase: otel
-        defaultTable: otel_traces
-        otelEnabled: true
-        otelVersion: '1.2.9'
-        durationUnit: 'seconds'
-
-  - name: ClickHouse-vertamedia
-    type: vertamedia-clickhouse-datasource
-    url: http://monitoring_clickhouse:8123
