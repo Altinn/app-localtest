@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 using Altinn.Notifications.Core.Enums;
 
@@ -27,6 +26,12 @@ public class NotificationOrderWithStatus : IBaseNotificationOrder
 
     /// <inheritdoc/>>
     public NotificationChannel NotificationChannel { get; internal set; }
+
+    /// <inheritdoc/>>
+    public bool IgnoreReservation { get; internal set; }
+
+    /// <inheritdoc/>>
+    public string? ResourceId { get; internal set; }
 
     /// <summary>
     /// Gets the processing status of the notication order
