@@ -75,7 +75,7 @@ namespace Altinn.Platform.Storage.Services
                 $"{signRequest.SignatureDocumentDataType}.json",
                 0,
                 userId.ToString(),
-                instance.Process.CurrentTask?.ElementId);
+                signRequest.GeneratedFromTask);
 
             signDocument.Id = dataElement.Id;
 
