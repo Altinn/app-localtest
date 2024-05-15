@@ -17,7 +17,7 @@
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
+  "graphTooltip": 2,
   "links": [],
   "panels": [
     {
@@ -353,7 +353,7 @@
             "uid": "mimir"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_datum_patched_total{job=\"$app\", result=\"success\"}[$__range])",
+          "expr": "increase(altinn_app_lib_data_patched_total{job=\"$app\", result=\"success\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -438,6 +438,115 @@
         "type": "prometheus",
         "uid": "mimir"
       },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 2,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 16,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "editorMode": "code",
+          "expr": "rate(altinn_app_lib_instances_created_total{job=\"$app\"}[$__rate_interval]) * 60",
+          "hide": false,
+          "legendFormat": "Skjemaer startet",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "editorMode": "code",
+          "expr": "rate(altinn_app_lib_processes_ended_total{job=\"$app\"}[$__rate_interval]) * 60",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Skjemaer fullført",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Skjemaer per minutt",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -474,7 +583,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 17
       },
       "id": 2,
       "options": {
@@ -574,7 +683,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 17
       },
       "id": 1,
       "options": {
@@ -611,7 +720,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 27
       },
       "id": 10,
       "panels": [],
@@ -648,7 +757,7 @@
         "h": 6,
         "w": 5,
         "x": 0,
-        "y": 19
+        "y": 28
       },
       "id": 6,
       "options": {
@@ -719,7 +828,7 @@
         "h": 6,
         "w": 5,
         "x": 5,
-        "y": 19
+        "y": 28
       },
       "id": 12,
       "options": {
@@ -817,7 +926,7 @@
         "h": 12,
         "w": 14,
         "x": 10,
-        "y": 19
+        "y": 28
       },
       "id": 11,
       "options": {
@@ -882,7 +991,7 @@
         "h": 6,
         "w": 5,
         "x": 0,
-        "y": 25
+        "y": 34
       },
       "id": 7,
       "options": {
@@ -953,7 +1062,7 @@
         "h": 6,
         "w": 5,
         "x": 5,
-        "y": 25
+        "y": 34
       },
       "id": 13,
       "options": {
@@ -1027,7 +1136,7 @@
     ]
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},

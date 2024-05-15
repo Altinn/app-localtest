@@ -1,4 +1,6 @@
+using LocalTest.Configuration;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace LocalTest.Controllers;
 
@@ -8,11 +10,20 @@ public class InfraController : ControllerBase
 {
     private readonly ILogger<InfraController> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly LocalPlatformSettings _localPlatformSettings;
+    private readonly GeneralSettings _generalSettings;
 
-    public InfraController(ILogger<InfraController> logger, IHttpClientFactory httpClientFactory)
+    public InfraController(
+        ILogger<InfraController> logger, 
+        IHttpClientFactory httpClientFactory, 
+        IOptions<LocalPlatformSettings> localPlatformSettings,
+        IOptions<GeneralSettings> generalSettings
+    )
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _localPlatformSettings = localPlatformSettings.Value;
+        _generalSettings = generalSettings.Value;
     }
 
     [HttpGet]
@@ -23,8 +34,9 @@ public class InfraController : ControllerBase
 
         try
         {
-            // TODO: how to run locally/on host? Different domain then (localhost)?
-            var response = await client.GetAsync("http://monitoring_grafana:3000/api/health", cancellationToken);
+            var baseUrl = _localPlatformSettings.LocalGrafanaUrl ?? $"{_generalSettings.BaseUrl}/grafana";
+            var url = $"{baseUrl}/api/health";
+            var response = await client.GetAsync(url, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
                 return Ok();
