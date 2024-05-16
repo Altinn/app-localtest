@@ -1,8 +1,22 @@
 #!/usr/bin/env sh
 
-set -ex
+set -e
 
-if [ $1 = "stop" ]; then
+include_monitoring=false
+while getopts "m" flag; do
+    case "${flag}" in
+        m) include_monitoring=true ;;
+        \?) exit 1 ;;
+    esac
+done
+shift $((${OPTIND} - 1))
+
+profile=""
+if [ "$include_monitoring" = true ]; then
+    profile="--profile \"monitoring\""
+fi
+
+if [ "$1" = "stop" ]; then
     echo "Stopping localtest!"
     if [ -x "$(command -v docker)" ]; then
         echo "Stopping using docker"
@@ -25,18 +39,18 @@ else
     if [ -x "$(command -v docker)" ]; then
         echo "Running using docker"
         docker compose --profile "*" down -v
-        docker compose --profile "*" up -d --build
+        eval "docker compose $profile up -d --build"
     elif [ -x "$(command -v docker-compose)" ]; then
         # If the user is not using docker, there should be podman installed
         # If additionally docker-compose is installed, we use that since it has had '--profile' support for a long time,
         # whereas podman-compose has only recently added support, and not many users have the latest versions
         echo "Running using docker-compose"
         docker-compose --file podman-compose.yml --profile "*" down -v
-        docker-compose --file podman-compose.yml --profile "*" up -d --build
+        eval "docker-compose --file podman-compose.yml $profile up -d --build"
     elif [ -x "$(command -v podman)" ]; then
         echo "Running using podman"
         podman compose --file podman-compose.yml --profile "*" down -v
-        podman compose --file podman-compose.yml --profile "*" up -d --build
+        eval "podman compose --file podman-compose.yml $profile up -d --build"
     else
         echo "Preqreqs missing - please install docker or podman"
         exit 1

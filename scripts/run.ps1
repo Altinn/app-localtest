@@ -1,5 +1,17 @@
 #!/usr/bin/env pwsh
 
+param(
+    [Parameter(HelpMessage="")]
+    [switch]$m = $False,
+)
+
+$Profile = ""
+
+if ($m)
+{
+    $Profile = "--profile ""monitoring"""
+}
+
 if ($args[0] -eq "stop")
 {
     Write-Host "Stopping localtest!"
@@ -25,6 +37,7 @@ if ($args[0] -eq "stop")
     else
     {
         Write-host "Preqreqs missing - please install docker or podman"
+        exit 1
     }
 }
 else 
@@ -35,7 +48,7 @@ else
     {
         Write-host "Running using docker"
         docker compose --profile "*" down -v
-        docker compose --profile "*" up -d --build
+        iex "docker compose $Profile -d --build"
     }
     elseif (Get-Command "docker-compose" -errorAction SilentlyContinue)
     {
@@ -44,16 +57,17 @@ else
         # whereas podman-compose has only recently added support, and not many users have the latest versions
         Write-host "Running using docker-compose"
         docker-compose --file podman-compose.yml --profile "*" down -v
-        docker-compose --file podman-compose.yml --profile "*" up -d --build
+        iex "docker-compose --file podman-compose.yml $Profile -d --build"
     }
     elseif (Get-Command "podman" -errorAction SilentlyContinue)
     {
         Write-host "Running using podman"
         podman compose --file podman-compose.yml --profile "*" down -v
-        podman compose --file podman-compose.yml --profile "*" up -d --build
+        iex "podman compose --file podman-compose.yml $Profile -d --build"
     }
     else
     {
         Write-host "Preqreqs missing - please install docker or podman"
+        exit 1
     }
 }

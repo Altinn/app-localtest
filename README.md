@@ -121,6 +121,12 @@ Either docker or podman must be installed.
 ./run.cmd
 ```
 
+Optionally, if you want access to Grafana and a local monitoring setup based on OpenTelemetry:
+
+```shell
+./run.cmd -m
+```
+
 If the localtest setup is already running, it will restart.
 
 To stop localtest
