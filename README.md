@@ -264,9 +264,10 @@ It was created to simulate workloads and test monitoring and instrumentation.
 
 ```shell
 cp k6/loadtest.sample.js k6/loadtest.js
+# Now make edits to k6/loadtest.js to fit your application
 
 # To run, either
-make k6
+./run.cmd k6
 # or 
 docker run --rm -i --net=host grafana/k6:master-with-browser run - <k6/loadtest.js
 ```
