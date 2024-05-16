@@ -34,6 +34,14 @@ if [ "$1" = "stop" ]; then
         echo "Preqreqs missing - please install docker or podman"
         exit 1
     fi
+elif [ "$1" = "k6" ]; then
+    echo "Running k6 loadtest!"
+    cmd="podman"
+    if [ -x "$(command -v docker)" ]; then
+        cmd="docker"
+    fi
+    eval "$cmd pull grafana/k6:master-with-browser"
+    eval "$cmd run --rm -i --net=host grafana/k6:master-with-browser run - <k6/loadtest.js"
 else
     echo "Running localtest!"
     if [ -x "$(command -v docker)" ]; then

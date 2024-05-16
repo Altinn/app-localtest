@@ -6,7 +6,6 @@ param(
 )
 
 $Profile = ""
-
 if ($m)
 {
     $Profile = "--profile ""monitoring"""
@@ -39,6 +38,17 @@ if ($args[0] -eq "stop")
         Write-host "Preqreqs missing - please install docker or podman"
         exit 1
     }
+}
+elseif ($args[0] -eq "k6")
+{
+    Write-Host "Running k6 loadtest!"
+    $Cmd = "podman"
+    if (Get-Command "docker" -errorAction SilentlyContinue)
+    {
+        $Cmd = "docker"
+    }
+    iex "$Cmd pull grafana/k6:master-with-browser"
+    iex "$Cmd run --rm -i --net=host grafana/k6:master-with-browser run - <k6/loadtest.js"
 }
 else 
 {
