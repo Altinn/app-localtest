@@ -73,6 +73,7 @@ namespace LocalTest
             {
                 opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 opt.JsonSerializerOptions.WriteIndented = true;
+                opt.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             });
 
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PepSettings"));
@@ -124,10 +125,10 @@ namespace LocalTest
             services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
 
             // Notifications services
-            
+
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
             services.AddNotificationServices(generalSettings.BaseUrl);
-            
+
             // Storage services
             services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
             services.AddTransient<IAuthorization, AuthorizationService>();
