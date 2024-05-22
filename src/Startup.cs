@@ -28,6 +28,7 @@ using AltinnCore.Authentication.JwtCookie;
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Helpers;
+using LocalTest.Notifications.LocalTestNotifications;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Authorization.Implementation;
@@ -35,6 +36,8 @@ using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Events.Implementation;
 using LocalTest.Services.LocalApp.Implementation;
 using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.LocalFrontend;
+using LocalTest.Services.LocalFrontend.Interface;
 using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
@@ -43,14 +46,7 @@ using LocalTest.Services.Storage.Implementation;
 using LocalTest.Services.TestData;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.StaticFiles.Infrastructure;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -109,6 +105,7 @@ namespace LocalTest
             services.AddSingleton<IPDP, PDPAppSI>();
             services.AddTransient<IPersonLookup, PersonLookupService>();
             services.AddTransient<TestDataService>();
+            services.AddTransient<TenorDataRepository>();
 
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
@@ -126,6 +123,11 @@ namespace LocalTest
             services.AddTransient<IAuthorizationHandler, StorageAccessHandler>();
             services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
 
+            // Notifications services
+            
+            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+            services.AddNotificationServices(generalSettings.BaseUrl);
+            
             // Storage services
             services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
             services.AddTransient<IAuthorization, AuthorizationService>();
@@ -199,6 +201,8 @@ namespace LocalTest
             {
                 services.AddTransient<ILocalApp, LocalAppFile>();
             }
+
+            services.AddTransient<ILocalFrontendService, LocalFrontendService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -207,7 +211,7 @@ namespace LocalTest
             IWebHostEnvironment env,
             IOptions<LocalPlatformSettings> localPlatformSettings)
         {
-            if (env.IsDevelopment() || env.IsEnvironment("docker"))
+            if (env.IsDevelopment() || env.IsEnvironment("docker") || env.IsEnvironment("podman"))
             {
                 app.UseDeveloperExceptionPage();
 

@@ -272,7 +272,11 @@ namespace Altinn.Platform.Storage.Controllers
             Stream theStream = streamAndDataElement.Stream;
             DataElement newData = streamAndDataElement.DataElement;
 
+#if LOCALTEST
+            newData.FileScanResult = dataTypeDefinition.EnableFileScan ? FileScanResult.Clean : FileScanResult.NotApplicable;
+#else
             newData.FileScanResult = dataTypeDefinition.EnableFileScan ? FileScanResult.Pending : FileScanResult.NotApplicable;
+#endif
 
             if (theStream == null)
             {
@@ -282,6 +286,11 @@ namespace Altinn.Platform.Storage.Controllers
             newData.Filename = HttpUtility.UrlDecode(newData.Filename);
             (long length, DateTimeOffset blobTimestamp) = await _dataRepository.WriteDataToStorage(instance.Org, theStream, newData.BlobStoragePath);
             newData.Size = length;
+            if (length == 0)
+            {
+                await _dataRepository.DeleteDataInStorage(instance.Org, newData.BlobStoragePath);
+                return BadRequest("Empty stream provided. Cannot persist data.");
+            }
 
             if (User.GetOrg() == instance.Org)
             {
@@ -399,7 +408,11 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (blobSize > 0)
             {
+#if LOCALTEST
+                FileScanResult scanResult = dataTypeDefinition.EnableFileScan ? FileScanResult.Clean : FileScanResult.NotApplicable;
+#else
                 FileScanResult scanResult = dataTypeDefinition.EnableFileScan ? FileScanResult.Pending : FileScanResult.NotApplicable;
+#endif
 
                 updatedProperties.Add("/fileScanResult", scanResult);
 
