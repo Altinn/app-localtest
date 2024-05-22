@@ -61,7 +61,7 @@ Optionally, if you want access to Grafana and a local monitoring setup based on 
 
 ```shell
 podman compose --file podman-compose.yml --profile "monitoring" up -d --build
-# Grafana should be available at http://local.altinn.cloud/grafana
+# Grafana should be available at http://local.altinn.cloud:8000/grafana
 # Remember to enable the 'UseOpenTelemetry' configuration flag in the appsettings.json of the app
 ```
 
