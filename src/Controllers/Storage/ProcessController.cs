@@ -78,7 +78,7 @@ namespace Altinn.Platform.Storage.Controllers
             string taskId = null;
             
             var moveNextFlows = new []{"CompleteCurrentMoveToNext", "AbandonCurrentMoveToNext"};
-            if (processState?.CurrentTask?.FlowType != null && !moveNextFlows.Contains(processState.CurrentTask.FlowType))
+            if (processState?.CurrentTask?.FlowType is not null && !moveNextFlows.Contains(processState.CurrentTask.FlowType))
             {
                 altinnTaskType = processState.CurrentTask.AltinnTaskType;
                 taskId = processState.CurrentTask.ElementId;
