@@ -12,6 +12,9 @@ using Altinn.Notifications.Validators;
 
 using FluentValidation;
 
+using LocalTest.Notifications.Core.Models.Orders;
+
+
 #if !LOCALTEST
 using Microsoft.AspNetCore.Authorization;
 #endif
@@ -84,15 +87,10 @@ public class EmailNotificationOrdersController : ControllerBase
         }
 #endif
 
-        var orderRequest = emailNotificationOrderRequest.MapToOrderRequest(creator);
-        Result<NotificationOrder, ServiceError> result = await _orderRequestService.RegisterNotificationOrder(orderRequest);
 
-        return result.Match(
-            order =>
-            {
-                string selfLink = order.GetSelfLink();
-                return Accepted(selfLink, new OrderIdExt(order.Id));
-            },
-            error => StatusCode(error.ErrorCode, error.ErrorMessage));
+        var orderRequest = emailNotificationOrderRequest.MapToOrderRequest(creator);
+        NotificationOrderRequestResponse result = await _orderRequestService.RegisterNotificationOrder(orderRequest);
+
+        return Accepted(result.OrderId!.GetSelfLinkFromOrderId(), result.MapToExternal());
     }
 }

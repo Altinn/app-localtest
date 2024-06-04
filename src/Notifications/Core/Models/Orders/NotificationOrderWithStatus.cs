@@ -28,7 +28,7 @@ public class NotificationOrderWithStatus : IBaseNotificationOrder
     public NotificationChannel NotificationChannel { get; internal set; }
 
     /// <inheritdoc/>>
-    public bool IgnoreReservation { get; internal set; }
+    public bool? IgnoreReservation { get; internal set; }
 
     /// <inheritdoc/>>
     public string? ResourceId { get; internal set; }
@@ -46,7 +46,16 @@ public class NotificationOrderWithStatus : IBaseNotificationOrder
     /// <summary>
     /// Initializes a new instance of the <see cref="NotificationOrderWithStatus"/> class.
     /// </summary>
-    public NotificationOrderWithStatus(Guid id, string? sendersReference, DateTime requestedSendTime, Creator creator, DateTime created, NotificationChannel notificationChannel, ProcessingStatus processingStatus)
+    public NotificationOrderWithStatus(
+        Guid id,
+        string? sendersReference,
+        DateTime requestedSendTime,
+        Creator creator,
+        DateTime created,
+        NotificationChannel notificationChannel,
+        bool? ignoreReservation,
+        string? resourceId,
+        ProcessingStatus processingStatus)
     {
         Id = id;
         SendersReference = sendersReference;
@@ -54,6 +63,8 @@ public class NotificationOrderWithStatus : IBaseNotificationOrder
         Creator = creator;
         Created = created;
         NotificationChannel = notificationChannel;
+        IgnoreReservation = ignoreReservation;
+        ResourceId = resourceId;
         ProcessingStatus = processingStatus;
     }
 

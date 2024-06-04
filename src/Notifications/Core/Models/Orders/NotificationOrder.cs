@@ -23,7 +23,7 @@ public class NotificationOrder : IBaseNotificationOrder
     public NotificationChannel NotificationChannel { get; internal set; }
 
     /// <inheritdoc/>>    
-    public bool IgnoreReservation { get; internal set; }
+    public bool? IgnoreReservation { get; internal set; }
 
     /// <inheritdoc/>>
     public string? ResourceId { get; internal set; }
@@ -56,7 +56,7 @@ public class NotificationOrder : IBaseNotificationOrder
         Creator creator,
         DateTime created,
         List<Recipient> recipients,
-        bool ignoreReservation, 
+        bool? ignoreReservation,
         string? resourceId)
     {
         Id = id;
