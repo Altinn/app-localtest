@@ -21,25 +21,20 @@ namespace LocalTest.Notifications.LocalTestNotifications
             List<UserContactPoints> contactPoints = new();
             var data = await _testDataService.GetTestData();
 
-            List<UserProfile> users = new();
 
-            foreach (var item in data.Profile.User)
-            {
-                users.AddRange(data.Profile.User
-                    .Where(u => nationalIdentityNumbers.Contains(u.Value.Party.SSN))
-                    .Select(u => u.Value)
-                    .ToList());
-            }
-
-            foreach (UserProfile user in users)
-            {
-                contactPoints.Add(new UserContactPoints()
+            contactPoints.AddRange(data.Profile.User
+                .Where(u => nationalIdentityNumbers.Contains(u.Value.Party.SSN))
+                .Select(u =>
                 {
-                    NationalIdentityNumber = user.Party.SSN,
-                    Email = user.Email,
-                    MobileNumber = user.PhoneNumber
-                });
-            }
+                    var user = u.Value;
+                    return new UserContactPoints()
+                    {
+                        NationalIdentityNumber = user.Party.SSN,
+                        Email = user.Email,
+                        MobileNumber = user.PhoneNumber
+                    };
+                })
+               .ToList());
 
             return contactPoints;
 

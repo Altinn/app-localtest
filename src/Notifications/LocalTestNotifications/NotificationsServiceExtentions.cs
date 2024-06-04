@@ -1,12 +1,15 @@
 using Altinn.Notifications.Core.Configuration;
+using Altinn.Notifications.Core.Integrations;
 using Altinn.Notifications.Core.Persistence;
 using Altinn.Notifications.Core.Services;
 using Altinn.Notifications.Core.Services.Interfaces;
 using Altinn.Notifications.Extensions;
 using Altinn.Notifications.Models;
 using Altinn.Notifications.Validators;
+
 using FluentValidation;
 using LocalTest.Notifications.Persistence.Repository;
+using LocalTest.Services.TestData;
 
 namespace LocalTest.Notifications.LocalTestNotifications;
 
@@ -26,6 +29,10 @@ public static class NotificationsServiceExtentions
             .AddSingleton<IOrderRepository, LocalOrderRepository>()
             .AddSingleton<IGuidService, GuidService>()
             .AddSingleton<IDateTimeService, DateTimeService>()
-            .AddSingleton<IOrderRequestService, OrderRequestService>();
+            .AddSingleton<IOrderRequestService, OrderRequestService>()
+            .AddSingleton<IContactPointService, ContactPointService>();
+
+        services.AddSingleton<IRegisterClient, LocalRegisterClient>();
+        services.AddSingleton<IProfileClient, LocalProfileClient>();
     }
 }
