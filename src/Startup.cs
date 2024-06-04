@@ -24,7 +24,6 @@ using Altinn.ResourceRegistry.Core;
 
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
-
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Helpers;
@@ -36,6 +35,8 @@ using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Events.Implementation;
 using LocalTest.Services.LocalApp.Implementation;
 using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.LocalFrontend;
+using LocalTest.Services.LocalFrontend.Interface;
 using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
@@ -199,6 +200,8 @@ namespace LocalTest
             {
                 services.AddTransient<ILocalApp, LocalAppFile>();
             }
+
+            services.AddTransient<ILocalFrontendService, LocalFrontendService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -207,7 +210,7 @@ namespace LocalTest
             IWebHostEnvironment env,
             IOptions<LocalPlatformSettings> localPlatformSettings)
         {
-            if (env.IsDevelopment() || env.IsEnvironment("docker"))
+            if (env.IsDevelopment() || env.IsEnvironment("docker") || env.IsEnvironment("podman"))
             {
                 app.UseDeveloperExceptionPage();
 

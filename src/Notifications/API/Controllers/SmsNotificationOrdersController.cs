@@ -1,16 +1,20 @@
-﻿#if !LOCALTEST
+﻿#nullable enable
+#if !LOCALTEST
 using Altinn.Notifications.Configuration;
-# endif 
-
+#endif
+using Altinn.Notifications.Core.Models.Orders;
 using Altinn.Notifications.Core.Services.Interfaces;
+using Altinn.Notifications.Core.Shared;
 using Altinn.Notifications.Extensions;
 using Altinn.Notifications.Mappers;
 using Altinn.Notifications.Models;
 using Altinn.Notifications.Validators;
 
 using FluentValidation;
-using LocalTest.Notifications.Core.Models.Orders;
+
+#if !LOCALTEST
 using Microsoft.AspNetCore.Authorization;
+#endif
 using Microsoft.AspNetCore.Mvc;
 
 #if !LOCALTEST
@@ -30,6 +34,7 @@ namespace Altinn.Notifications.Controllers;
 [SwaggerResponse(401, "Caller is unauthorized")]
 [SwaggerResponse(403, "Caller is not authorized to access the requested resource")]
 # endif
+
 public class SmsNotificationOrdersController : ControllerBase
 {
     private readonly IValidator<SmsNotificationOrderRequestExt> _validator;
@@ -51,16 +56,16 @@ public class SmsNotificationOrdersController : ControllerBase
     /// The API will accept the request after som basic validation of the request.
     /// The system will also attempt to verify that it will be possible to fulfill the order.
     /// </remarks>
-    /// <returns>The notification order request response</returns>
+    /// <returns>The id of the registered notification order</returns>
     [HttpPost]
     [Consumes("application/json")]
     [Produces("application/json")]
-    #if !LOCALTEST
-    [SwaggerResponse(202, "The notification order was accepted", typeof(NotificationOrderRequestResponseExt))]
+#if !LOCALTEST
+    [SwaggerResponse(202, "The notification order was accepted", typeof(OrderIdExt))]
     [SwaggerResponse(400, "The notification order is invalid", typeof(ValidationProblemDetails))]
     [SwaggerResponseHeader(202, "Location", "string", "Link to access the newly created notification order.")]
-    #endif
-    public async Task<ActionResult<NotificationOrderRequestResponseExt>> Post(SmsNotificationOrderRequestExt smsNotificationOrderRequest)
+#endif
+    public async Task<ActionResult<OrderIdExt>> Post(SmsNotificationOrderRequestExt smsNotificationOrderRequest)
     {
         FluentValidation.Results.ValidationResult validationResult = _validator.Validate(smsNotificationOrderRequest);
         if (!validationResult.IsValid)
@@ -80,9 +85,15 @@ public class SmsNotificationOrdersController : ControllerBase
         }
 #endif
 
-        var orderRequest = smsNotificationOrderRequest.MapToOrderRequest(creator);
-        NotificationOrderRequestResponse result = await _orderRequestService.RegisterNotificationOrder(orderRequest);
+        NotificationOrderRequest orderRequest = smsNotificationOrderRequest.MapToOrderRequest(creator);
+        Result<NotificationOrder, ServiceError> result = await _orderRequestService.RegisterNotificationOrder(orderRequest);
 
-        return Accepted(result.OrderId.GetSelfLinkFromOrderId(), result.MapToExternal());
+        return result.Match(
+             registeredOrder =>
+             {
+                 string selfLink = registeredOrder!.GetSelfLink();
+                 return Accepted(selfLink, new OrderIdExt(registeredOrder!.Id));
+             },
+             error => StatusCode(error.ErrorCode, error.ErrorMessage));
     }
 }

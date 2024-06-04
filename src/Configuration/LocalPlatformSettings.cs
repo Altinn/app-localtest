@@ -41,6 +41,10 @@ namespace LocalTest.Configuration
             }
         }
 
+        public string LocalFrontendHostname { get; set; }
+        
+        public string LocalFrontendProtocol { get; set; } = "http";
+        
         /// <summary>
         /// Url for the local app when LocalAppMode == http
         /// <summary>
@@ -74,5 +78,7 @@ namespace LocalTest.Configuration
         public string ClaimsFolder { get; set; } = "claims/";
 
         public string TenorDataFolder { get; set; } = "tenorUsers";
+
+        public string LocalGrafanaUrl { get; set; }
     }
 }

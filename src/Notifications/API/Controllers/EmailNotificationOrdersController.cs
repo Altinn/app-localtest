@@ -2,17 +2,15 @@
 #if !LOCALTEST
 using Altinn.Notifications.Configuration;
 #endif
-using Altinn.Notifications.Core.Models;
 using Altinn.Notifications.Core.Models.Orders;
 using Altinn.Notifications.Core.Services.Interfaces;
+using Altinn.Notifications.Core.Shared;
 using Altinn.Notifications.Extensions;
 using Altinn.Notifications.Mappers;
 using Altinn.Notifications.Models;
 using Altinn.Notifications.Validators;
 
 using FluentValidation;
-using LocalTest.Notifications.Core.Models.Orders;
-
 
 #if !LOCALTEST
 using Microsoft.AspNetCore.Authorization;
@@ -57,21 +55,21 @@ public class EmailNotificationOrdersController : ControllerBase
     /// The API will accept the request after som basic validation of the request.
     /// The system will also attempt to verify that it will be possible to fulfill the order.
     /// </remarks>
-    /// <returns>The notification order request response</returns>
+    /// <returns>The id of the registered notification order</returns>
     [HttpPost]
     [Consumes("application/json")]
     [Produces("application/json")]
 #if !LOCALTEST
-    [SwaggerResponse(202, "The notification order was accepted", typeof(NotificationOrderRequestResponseExt))]
+    [SwaggerResponse(202, "The notification order was accepted", typeof(OrderIdExt))]
     [SwaggerResponse(400, "The notification order is invalid", typeof(ValidationProblemDetails))]
     [SwaggerResponseHeader(202, "Location", "string", "Link to access the newly created notification order.")]
-# endif
-    public async Task<ActionResult<NotificationOrderRequestResponseExt>> Post(EmailNotificationOrderRequestExt emailNotificationOrderRequest)
+#endif
+    public async Task<ActionResult<OrderIdExt>> Post(EmailNotificationOrderRequestExt emailNotificationOrderRequest)
     {
         var validationResult = _validator.Validate(emailNotificationOrderRequest);
         if (!validationResult.IsValid)
         {
-            validationResult.AddToModelState(this.ModelState);
+            validationResult.AddToModelState(ModelState);
             return ValidationProblem(ModelState);
         }
 
@@ -87,8 +85,14 @@ public class EmailNotificationOrdersController : ControllerBase
 #endif
 
         var orderRequest = emailNotificationOrderRequest.MapToOrderRequest(creator);
-        NotificationOrderRequestResponse result = await _orderRequestService.RegisterNotificationOrder(orderRequest);
+        Result<NotificationOrder, ServiceError> result = await _orderRequestService.RegisterNotificationOrder(orderRequest);
 
-        return Accepted(result.OrderId!.GetSelfLinkFromOrderId(), result.MapToExternal());
+        return result.Match(
+            order =>
+            {
+                string selfLink = order.GetSelfLink();
+                return Accepted(selfLink, new OrderIdExt(order.Id));
+            },
+            error => StatusCode(error.ErrorCode, error.ErrorMessage));
     }
 }

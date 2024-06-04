@@ -1,21 +1,18 @@
 using Altinn.Notifications.Core.Configuration;
-using Altinn.Notifications.Core.Integrations;
-using Altinn.Notifications.Core.Persistence;
+using Altinn.Notifications.Core.Repository.Interfaces;
 using Altinn.Notifications.Core.Services;
 using Altinn.Notifications.Core.Services.Interfaces;
 using Altinn.Notifications.Extensions;
 using Altinn.Notifications.Models;
 using Altinn.Notifications.Validators;
-
 using FluentValidation;
-
 using LocalTest.Notifications.Persistence.Repository;
 
 namespace LocalTest.Notifications.LocalTestNotifications;
 
 public static class NotificationsServiceExtentions
 {
-    public static void AddNotificationServices(this IServiceCollection services, string baseUrl, IConfiguration config)
+    public static void AddNotificationServices(this IServiceCollection services, string baseUrl)
     {
         // Notifications services     
         ValidatorOptions.Global.LanguageManager.Enabled = false;
@@ -29,11 +26,6 @@ public static class NotificationsServiceExtentions
             .AddSingleton<IOrderRepository, LocalOrderRepository>()
             .AddSingleton<IGuidService, GuidService>()
             .AddSingleton<IDateTimeService, DateTimeService>()
-            .AddSingleton<IOrderRequestService, OrderRequestService>()
-            .AddSingleton<IContactPointService, ContactPointService>()
-            .AddSingleton<IRegisterClient, LocalRegisterClient>()
-            .AddSingleton<IProfileClient, LocalProfileClient>()
-            .Configure<NotificationOrderConfig>(config.GetSection("NotificationOrderConfig"));
-        
+            .AddSingleton<IOrderRequestService, OrderRequestService>();
     }
 }

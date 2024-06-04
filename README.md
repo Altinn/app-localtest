@@ -4,7 +4,17 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
+  - [Clone the repository](#clone-the-repository)
+  - [Option A: Start the containers using podman](#option-a-start-the-containers-using-podman)
+  - [Option B: Start the containers using Docker](#option-b-start-the-containers-using-docker)
+  - [Option C (preview): Automatic detection](#option-c-preview-automatic-detection)
+  - [Start your app](#start-your-app)
+- [Changing configuration](#changing-configuration)
+- [Multiple apps at the same time (running LocalTest locally)](#multiple-apps-at-the-same-time-running-localtest-locally)
 - [Changing test data](#changing-test-data)
+  - [Add a missing role for a test user](#add-a-missing-role-for-a-test-user)
+- [Known issues](#known-issues)
+  - [Localtest reports that the app is not running even though it is](#localtest-reports-that-the-app-is-not-running-even-though-it-is)
 
 ### Prerequisites
 
@@ -14,89 +24,132 @@ These are some of the required steps, tips, and tricks when it comes to running 
     - Also
       install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (
       f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
-4. [Docker Desktop](https://www.docker.com/products/docker-desktop) (Linux users can also use native Docker)
-
+4. [Podman Desktop](https://podman-desktop.io)/[Podman](https://podman.io) (Linux users can also use native Docker) or [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows and Mac) This might require you to purchase a license.
+On mac with apple silicone (M1, M2, M3):
+5. [vfkit](https://github.com/crc-org/vfkit?tab=readme-ov-file#installation)
 ### Setup
 
-#### Using docker 
+#### Clone the repository
 
-1. Clone the `app-localtest` repository to a local folder and move into the folder.
+```shell
+git clone https://github.com/Altinn/app-localtest
+cd app-localtest
+ ```
 
-   ```shell
-   git clone https://github.com/Altinn/app-localtest
-   cd app-localtest
-   ```
+#### Option A: Start the containers using podman
 
-2. Build and run the containers in the background. 
+This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `podman stop localtest` and follow the instructions below to run LocalTest locally outside Docker/Podman.
 
-    ```shell
-    docker compose up -d --build
-    ```
+> [!IMPORTANT]
+> If you are using an mac with either a M1, M2 or M3 chip you may need to use `applehv` instead of `qemu` as the podman machine driver. 
+> This can be done by setting the environment variable `CONTAINERS_MACHINE_PROVIDER` to `applehv` before running the command below.
+> To add this to your zsh profile run the following command: `echo "export CONTAINERS_MACHINE_PROVIDER=applehv" >> ~/.zprofile`
+> If you are using Podman Desktop you also need to add these lines in `~/.config/containers/containers.conf` (check if the `[machine]` section already exists):
+>  
+> ```
+> [machine]
+>   provider = "applehv"
+> ```
 
-   :information_source: If you are using linux or mac you can use the Makefile to build and run the containers.
+Start the containers with the following command:
 
-    ```shell
-    make docker-start-localtest
-    ```
+```shell
+podman compose --file podman-compose.yml up -d --build
+```
+
+Optionally, if you want access to Grafana and a local monitoring setup based on OpenTelemetry:
+
+```shell
+podman compose --file podman-compose.yml --profile "monitoring" up -d --build
+# Grafana should be available at http://local.altinn.cloud:8000/grafana
+# Remember to enable the 'UseOpenTelemetry' configuration flag in the appsettings.json of the app
+```
+
+> [!NOTE]
+> If you are using linux or mac you can use the Makefile to build and run the containers.
+> 
+> ```shell
+> make podman-start-localtest
+> ```
+
+> [!IMPORTANT]
+> Are you running podman version < 4.7.0 you need to use the following command instead:
+> 
+> ```shell
+> podman-compose --file podman-compose.yml up -d --build
+> ```
+> 
+> or the make command:
+> 
+> ```shell
+> make podman-compose-start-localtest
+> ```
+
+Localtest should now be runningn on port 8000 and can be accessed on <http://local.altinn.cloud:8000>.
+
+#### Option B: Start the containers using Docker
+
+This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `docker stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
+
+```shell
+docker compose up -d --build
+```
+
+Optionally, if you want access to Grafana and a local monitoring setup based on OpenTelemetry:
+
+```shell
+docker compose --profile "monitoring" up -d --build
+# Grafana should be available at http://local.altinn.cloud/grafana
+# Remember to enable the 'UseOpenTelemetry' configuration flag in the appsettings.json of the app
+```
    
-    This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `docker stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
+> [!NOTE]
+> If you are using linux or mac you can use the Makefile to build and run the containers.
+> 
+> ```shell
+> make docker-start-localtest
+> ```
 
-3. Start your app
-    _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
-  
-    Move into the `App` folder of your application.
+Localtest should now be runningn on port 80 and can be accessed on <http://local.altinn.cloud:80>.
 
-     Example: If your application is named `my-awesome-app` and is located in the folder `C:\my_applications`, run the following command:
+#### Option C (preview): Automatic detection
 
-    ```shell
-    cd C:\my_applications\my-awasome-app\App
-    ```
+There is a preview helper script that will execute the correct commands in a cross-platform way.
+Either docker or podman must be installed.
 
-     Run the application:
+```shell
+./run.cmd
+```
 
-     ```shell
-     dotnet run
-    ```
+Optionally, if you want access to Grafana and a local monitoring setup based on OpenTelemetry:
 
-#### Using podman
+```shell
+./run.cmd -m
+```
 
-1. Clone the `app-localtest` repository to a local folder and move into the folder.
+If the localtest setup is already running, it will restart.
 
-   ```shell
-   git clone https://github.com/Altinn/app-localtest
-   cd app-localtest
-   ```
+To stop localtest
+```shell
+./run.cmd stop
+```
 
-2. Build and run the containers in the background.
+#### Start your app
+_This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
 
-    ```shell
-    podman compose --file podman-compose.yml up -d --build
-    ```
+Move into the `App` folder of your application.
 
-   :information_source: If you are using linux or mac you can use the Makefile to build and run the containers.
+Example: If your application is named `my-awesome-app` and is located in the folder `C:\my_applications`, run the following command:
 
-   ```shell
-   make podman-start-localtest
-   ```
+```shell
+cd C:\my_applications\my-awasome-app\App
+```
 
-   This mode supports running one app at a time. If you need to run multiple apps at once, stop the localtest container with `podman stop localtest` and follow the instructions below to run LocalTest locally outside Docker.
+Run the application:
 
-3. Start your app
-   _This step requires that you have already [created an app](https://docs.altinn.studio/app/getting-started/create-app/), added a [data model](https://docs.altinn.studio/app/development/data/data-model/data-models-tool/), and [cloned the app](https://docs.altinn.studio/app/getting-started/local-dev/) to your local environment._
-
-   Move into the `App` folder of your application.
-
-   Example: If your application is named `my-awesome-app` and is located in the folder `C:\my_applications`, run the following command:
-
-    ```shell
-    cd C:\my_applications\my-awasome-app\App
-    ```
-
-   Run the application:
-
-     ```shell
-     dotnet run
-    ```
+ ```shell
+ dotnet run
+```
 
 The app and local platform services are now running locally. The app can be accessed on <http://local.altinn.cloud>.
 
@@ -203,3 +256,30 @@ This would be required if your app requires a role which none of the test users 
 
 4. Save and close the file
 5. Restart LocalTest
+
+### k6 testing
+
+In the k6 folder there is a sample loadtest that can be adapted to run automated tests against a local app
+It was created to simulate workloads and test monitoring and instrumentation.
+
+```shell
+cp k6/loadtest.sample.js k6/loadtest.js
+# Now make edits to k6/loadtest.js to fit your application
+
+# To run, either
+./run.cmd k6
+# or 
+docker run --rm -i --net=host grafana/k6:master-with-browser run - <k6/loadtest.js
+```
+
+For a decent editing experience, run `npm install` and use a editor with JS support.
+
+### Known issues
+
+#### Localtest reports that the app is not running even though it is
+
+If localtest and you app is running, but localtest reports that the app is not running, it might be that the port is not open in the firewall.
+
+You can verify if the app is running by opening `http://localhost:5005/<app-org-name>/<app-name>/swagger/index.html` (remember to replace `<app-org-name>` and `<app-name>` with the correct values).
+
+If this is the case you can open a Windows Powershell as administrator and run the script `OpenAppPortInHyperVFirewall.ps1` located in the `scripts` folder.
