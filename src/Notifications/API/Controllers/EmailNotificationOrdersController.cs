@@ -12,7 +12,6 @@ using Altinn.Notifications.Validators;
 
 using FluentValidation;
 
-
 #if !LOCALTEST
 using Microsoft.AspNetCore.Authorization;
 #endif
@@ -22,7 +21,6 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.Filters;
 #endif
-
 namespace Altinn.Notifications.Controllers;
 
 /// <summary>
