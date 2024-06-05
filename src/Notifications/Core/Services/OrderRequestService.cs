@@ -5,9 +5,6 @@ using Altinn.Notifications.Core.Models.NotificationTemplate;
 using Altinn.Notifications.Core.Models.Orders;
 using Altinn.Notifications.Core.Persistence;
 using Altinn.Notifications.Core.Services.Interfaces;
-using Altinn.Notifications.Models;
-
-using LocalTest.Notifications.Core.Models.Orders;
 
 using Microsoft.Extensions.Options;
 
@@ -44,7 +41,7 @@ public class OrderRequestService : IOrderRequestService
     }
 
     /// <inheritdoc/>
-    public async Task<NotificationOrderRequestResponse> RegisterNotificationOrder(NotificationOrderRequest orderRequest)
+   public async Task<NotificationOrderRequestResponse> RegisterNotificationOrder(NotificationOrderRequest orderRequest)
     {
         Guid orderId = _guid.NewGuid();
         DateTime currentime = _dateTime.UtcNow();

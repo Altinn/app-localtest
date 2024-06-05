@@ -29,4 +29,20 @@ public class UserContactPoints
     /// Gets or sets the email address
     /// </summary>
     public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Create a new instance with the same values as the existing instance
+    /// </summary>
+    /// <returns>The new instance with copied values.</returns>
+    public UserContactPoints Clone()
+    {
+        return new()
+        {
+            UserId = UserId,
+            NationalIdentityNumber = NationalIdentityNumber,
+            IsReserved = IsReserved,
+            MobileNumber = MobileNumber,
+            Email = Email
+        };
+    }
 }

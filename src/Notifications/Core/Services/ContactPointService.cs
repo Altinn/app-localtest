@@ -14,14 +14,16 @@ namespace Altinn.Notifications.Core.Services
     {
         private readonly IProfileClient _profileClient;
         private readonly IRegisterClient _registerClient;
+        private readonly IAuthorizationService _authorizationService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ContactPointService"/> class.
         /// </summary>
-        public ContactPointService(IProfileClient profile, IRegisterClient register)
+        public ContactPointService(IProfileClient profile, IRegisterClient register, IAuthorizationService authorizationService)
         {
             _profileClient = profile;
             _registerClient = register;
+            _authorizationService = authorizationService;
         }
 
         /// <inheritdoc/>
@@ -88,7 +90,7 @@ namespace Altinn.Notifications.Core.Services
             Func<Recipient, UserContactPoints, Recipient> createUserContactPoint,
             Func<Recipient, OrganizationContactPoints, Recipient> createOrgContactPoint)
         {
-            List<Recipient> augmentedRecipients = new();
+            List<Recipient> augmentedRecipients = new(); 
 
             var userLookupTask = LookupPersonContactPoints(recipients);
             var orgLookupTask = LookupOrganizationContactPoints(recipients, resourceId);
@@ -147,7 +149,7 @@ namespace Altinn.Notifications.Core.Services
             return contactPoints;
         }
 
-        private async Task<List<OrganizationContactPoints>> LookupOrganizationContactPoints(List<Recipient> recipients, string? resourceId = null)
+        private async Task<List<OrganizationContactPoints>> LookupOrganizationContactPoints(List<Recipient> recipients, string? resourceId)
         {
             List<string> orgNos = recipients
              .Where(r => !string.IsNullOrEmpty(r.OrganizationNumber))
@@ -160,19 +162,19 @@ namespace Altinn.Notifications.Core.Services
             }
 
             Task<List<OrganizationContactPoints>> registerTask = _registerClient.GetOrganizationContactPoints(orgNos);
-            List<OrganizationContactPoints> userRegisteredContactPoints = new();
+            List<OrganizationContactPoints> authorizedUserContactPoints = new();
 
             if (!string.IsNullOrEmpty(resourceId))
             {
-                // TODO: call authorization to filter list before moving forward
-                userRegisteredContactPoints = await _profileClient.GetUserRegisteredOrganizationContactPoints(resourceId, orgNos);
+                var allUserContactPoints = await _profileClient.GetUserRegisteredContactPoints(orgNos, resourceId);
+                authorizedUserContactPoints = await _authorizationService.AuthorizeUserContactPointsForResource(allUserContactPoints, resourceId);
             }
 
             List<OrganizationContactPoints> contactPoints = await registerTask;
 
             if (!string.IsNullOrEmpty(resourceId))
             {
-                foreach (var userContactPoint in userRegisteredContactPoints)
+                foreach (var userContactPoint in authorizedUserContactPoints)
                 {
                     userContactPoint.UserContactPoints.ForEach(userContactPoint =>
                     {

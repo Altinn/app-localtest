@@ -1,7 +1,4 @@
-﻿#nullable enable
-using Altinn.Notifications.Core.Models.Orders;
-
-using LocalTest.Notifications.Core.Models.Orders;
+﻿using Altinn.Notifications.Core.Models.Orders;
 
 namespace Altinn.Notifications.Core.Services.Interfaces;
 

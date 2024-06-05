@@ -44,7 +44,7 @@ public class BaseNotificationOrderExt
     /// Gets or sets the preferred notification channel of the notification order
     /// </summary>
     [JsonPropertyName("notificationChannel")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))] 
     public NotificationChannelExt NotificationChannel { get; set; }
 
     /// <summary>

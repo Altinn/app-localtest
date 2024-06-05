@@ -52,10 +52,10 @@ public class NotificationOrderRequest
     /// Initializes a new instance of the <see cref="NotificationOrderRequest"/> class.
     /// </summary>
     public NotificationOrderRequest(
-        string? sendersReference,
-        string creatorShortName,
-        List<INotificationTemplate> templates,
-        DateTime? requestedSendTime,
+        string? sendersReference, 
+        string creatorShortName, 
+        List<INotificationTemplate> templates, 
+        DateTime? requestedSendTime, 
         NotificationChannel notificationChannel,
         List<Recipient> recipients,
         bool? ignoreReservation,

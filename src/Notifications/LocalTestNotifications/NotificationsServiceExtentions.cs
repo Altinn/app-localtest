@@ -8,8 +8,8 @@ using Altinn.Notifications.Models;
 using Altinn.Notifications.Validators;
 
 using FluentValidation;
+
 using LocalTest.Notifications.Persistence.Repository;
-using LocalTest.Services.TestData;
 
 namespace LocalTest.Notifications.LocalTestNotifications;
 
@@ -22,7 +22,7 @@ public static class NotificationsServiceExtentions
         ResourceLinkExtensions.Initialize(baseUrl);
 
         services.Configure<NotificationOrderConfig>((c) => c.DefaultEmailFromAddress = "localtest@altinn.no");
-
+    
         services
             .AddSingleton<IValidator<EmailNotificationOrderRequestExt>, EmailNotificationOrderRequestValidator>()
             .AddSingleton<IValidator<SmsNotificationOrderRequestExt>, SmsNotificationOrderRequestValidator>()
@@ -34,5 +34,6 @@ public static class NotificationsServiceExtentions
 
         services.AddSingleton<IRegisterClient, LocalRegisterClient>();
         services.AddSingleton<IProfileClient, LocalProfileClient>();
+        services.AddSingleton<IAuthorizationService, LocalAuthorizationService>();
     }
 }

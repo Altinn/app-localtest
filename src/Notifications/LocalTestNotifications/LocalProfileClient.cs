@@ -1,8 +1,6 @@
 ﻿using Altinn.Notifications.Core.Integrations;
 using Altinn.Notifications.Core.Models.ContactPoints;
-using Altinn.Platform.Profile.Models;
 
-using LocalTest.Services.Register.Interface;
 using LocalTest.Services.TestData;
 
 namespace LocalTest.Notifications.LocalTestNotifications
@@ -40,9 +38,10 @@ namespace LocalTest.Notifications.LocalTestNotifications
 
         }
 
-        public Task<List<OrganizationContactPoints>> GetUserRegisteredOrganizationContactPoints(string resourceId, List<string> organizationNumbers)
+        public async Task<List<OrganizationContactPoints>> GetUserRegisteredContactPoints(List<string> organizationNumbers, string resourceId)
         {
-            throw new NotImplementedException();
+            await Task.CompletedTask;
+            return new List<OrganizationContactPoints>();
         }
     }
 }

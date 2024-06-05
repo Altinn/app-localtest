@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace LocalTest.Notifications.Core.Models.Orders;
+namespace Altinn.Notifications.Core.Models.Orders;
 
 /// <summary>
 /// A class representing an order request response.

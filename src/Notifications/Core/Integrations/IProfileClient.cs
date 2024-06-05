@@ -15,10 +15,10 @@ public interface IProfileClient
     public Task<List<UserContactPoints>> GetUserContactPoints(List<string> nationalIdentityNumbers);
 
     /// <summary>
-    /// Retrieves the user registered contact points for a list of organization corresponding to a list of organization numbers
+    /// Retrieves the user registered contact points for a list of organizations identified by organization numbers
     /// </summary>
-    /// <param name="resourceId">The id of the resource to look up contact points for</param>
     /// <param name="organizationNumbers">The set or organizations to retrieve contact points for</param>
-    /// <returns></returns>
-    public Task<List<OrganizationContactPoints>> GetUserRegisteredOrganizationContactPoints(string resourceId, List<string> organizationNumbers);
+    /// <param name="resourceId">The id of the resource to look up contact points for</param>
+    /// <returns>A list of organiation contact points containing user registered contact points</returns>
+    public Task<List<OrganizationContactPoints>> GetUserRegisteredContactPoints(List<string> organizationNumbers, string resourceId);
 }

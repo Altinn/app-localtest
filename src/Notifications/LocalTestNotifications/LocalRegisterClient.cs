@@ -1,7 +1,5 @@
 ﻿using Altinn.Notifications.Core.Integrations;
 using Altinn.Notifications.Core.Models.ContactPoints;
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
 
 using LocalTest.Services.TestData;
 

@@ -1,5 +1,5 @@
-﻿using Altinn.Notifications.Models;
-using LocalTest.Notifications.Core.Models.Orders;
+﻿using Altinn.Notifications.Core.Models.Orders;
+using Altinn.Notifications.Models;
 
 namespace Altinn.Notifications.Mappers;
 

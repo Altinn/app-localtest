@@ -12,8 +12,6 @@ using Altinn.Notifications.Validators;
 
 using FluentValidation;
 
-using LocalTest.Notifications.Core.Models.Orders;
-
 
 #if !LOCALTEST
 using Microsoft.AspNetCore.Authorization;

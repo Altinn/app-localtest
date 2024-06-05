@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Altinn.Notifications.Models;
@@ -15,19 +16,21 @@ public class EmailNotificationOrderRequestExt : NotificationOrderRequestBaseExt
     /// Gets or sets the subject of the email
     /// </summary>
     [JsonPropertyName("subject")]
+    [Required]
     public string Subject { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the body of the email
     /// </summary>
     [JsonPropertyName("body")]
+    [Required]
     public string Body { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the content type of the email
     /// </summary>
     [JsonPropertyName("contentType")]
-    public EmailContentTypeExt ContentType { get; set; } = EmailContentTypeExt.Plain;
+    public EmailContentTypeExt? ContentType { get; set; }
 
     /// <summary>
     /// Json serialized the <see cref="EmailNotificationOrderRequestExt"/>
