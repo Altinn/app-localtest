@@ -199,6 +199,10 @@ namespace LocalTest.Services.Storage.Implementation
             {
                 RemoveForDateTime(instances, $"{nameof(Instance.Process)}.{nameof(Instance.Process.Ended)}", queryParams.GetValueOrDefault("process.ended"));
             }
+            if (queryParams.ContainsKey("process.currentTask"))
+            {
+                instances.RemoveAll(i => !queryParams["process.currentTask"].Contains(i.Process.CurrentTask.ElementId));
+            }
 
             instances.RemoveAll(i => i.Status.IsHardDeleted == true);
 
