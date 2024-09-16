@@ -18,7 +18,7 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
 ### Prerequisites
 
-1. Newest [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
+1. Newest [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet)
 2. Newest [Git](https://git-scm.com/downloads)
 3. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
     - Also
