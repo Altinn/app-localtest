@@ -26,8 +26,11 @@ These are some of the required steps, tips, and tricks when it comes to running 
       f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
 4. Tooling to run containers:  
     - [Podman](https://podman.io)* (optionally with [Podman Desktop](https://podman-desktop.io))
-    - [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows and Mac) This might require you to purchase a license. Linux users can also use native Docker.
-    - On mac with apple silicone (M1, M2, M3): [vfkit](https://github.com/crc-org/vfkit?tab=readme-ov-file#installation)
+    - [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows and Mac) This might require you to purchase a license. 
+    - Linux/WSL users can also use native Docker.
+  
+ > [!NOTE] 
+ > On Mac with Apple silicone (M-series CPU), [vfkit](https://github.com/crc-org/vfkit?tab=readme-ov-file#installation) might be needed - consult the install guide/requirements for your container toolkit
 
 
 > [!WARNING]
