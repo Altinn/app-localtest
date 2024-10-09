@@ -81,7 +81,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (processState?.CurrentTask?.FlowType == "AbandonCurrentMoveToNext")
             {
-                altinnTaskType = "data";
+                altinnTaskType = "reject";
             }
             else if (
                 processState?.CurrentTask?.FlowType is not null
