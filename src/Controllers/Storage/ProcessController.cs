@@ -109,7 +109,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // Archiving instance if process was ended
-            if (existingInstance.Process.Ended == null && processState?.Ended != null)
+            if (existingInstance.Process?.Ended is null && processState?.Ended is not null)
             {
                 existingInstance.Status ??= new InstanceStatus();
                 existingInstance.Status.IsArchived = true;
