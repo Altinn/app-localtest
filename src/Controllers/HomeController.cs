@@ -103,6 +103,14 @@ namespace LocalTest.Controllers
             return View(model);
         }
 
+        [AllowAnonymous]
+        [HttpGet("/Home/Localtest/Version")]
+        public IActionResult Version()
+        {
+            Thread.Sleep(5000);
+            return Ok("1");
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
