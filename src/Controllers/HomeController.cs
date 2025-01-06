@@ -107,7 +107,6 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Localtest/Version")]
         public IActionResult Version()
         {
-            Thread.Sleep(5000);
             return Ok("1");
         }
 
