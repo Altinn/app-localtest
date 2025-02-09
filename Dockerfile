@@ -8,7 +8,10 @@ COPY ./src .
 RUN dotnet publish LocalTest.csproj -c Release -o /app_output
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+ENV ASPNETCORE_URLS=http://*:5101/
 EXPOSE 5101
+# Create the storage folder if it isn't mapped to a volume runtime
+RUN mkdir /AltinnPlatformLocal
 WORKDIR /app
 COPY --from=build /app_output .
 
