@@ -26,6 +26,7 @@ using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
+using LocalTest.Filters;
 using LocalTest.Helpers;
 using LocalTest.Notifications.LocalTestNotifications;
 using LocalTest.Services.Authentication.Implementation;
@@ -224,6 +225,8 @@ namespace LocalTest
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseMiddleware<ProxyMiddleware>();
 
             app.UseStaticFiles(new StaticFileOptions
             {
