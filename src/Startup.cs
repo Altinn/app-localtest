@@ -206,6 +206,8 @@ namespace LocalTest
             services.AddTransient<ILocalFrontendService, LocalFrontendService>();
 
             services.AddHttpForwarder();
+
+            services.AddHealthChecks();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -228,6 +230,7 @@ namespace LocalTest
                 app.UseHsts();
             }
 
+            app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
 
             app.UseStaticFiles(new StaticFileOptions

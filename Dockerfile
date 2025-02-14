@@ -17,6 +17,8 @@ COPY --from=build /app_output .
 
 # Copy various data
 COPY ./testdata /testdata
+HEALTHCHECK --interval=1s --timeout=1s --retries=20 \
+    CMD wget -nv -t1 --spider 'http://localhost:5101/health' || exit 1
 
 # setup the user and group (not important for LocalTest and this removes write access to /AltinnPlatformLocal)
 # RUN addgroup -g 3000 dotnet && adduser -u 1000 -G dotnet -D -s /bin/false dotnet
