@@ -204,6 +204,8 @@ namespace LocalTest
             }
 
             services.AddTransient<ILocalFrontendService, LocalFrontendService>();
+
+            services.AddHttpForwarder();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

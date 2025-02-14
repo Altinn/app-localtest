@@ -1,7 +1,10 @@
 #nullable enable
+using System.Diagnostics;
+using System.Net;
 using System.Text.RegularExpressions;
 using LocalTest.Configuration;
 using Microsoft.Extensions.Options;
+using Yarp.ReverseProxy.Forwarder;
 
 namespace LocalTest.Filters;
 
@@ -9,17 +12,17 @@ public class ProxyMiddleware
 {
     private readonly RequestDelegate _nextMiddleware;
     private readonly IOptions<LocalPlatformSettings> localPlatformSettings;
-    private readonly ILogger<ProxyMiddleware> _logger;
+    private readonly IHttpForwarder _forwarder;
 
     public ProxyMiddleware(
         RequestDelegate nextMiddleware,
         IOptions<LocalPlatformSettings> localPlatformSettings,
-        ILogger<ProxyMiddleware> logger
+        IHttpForwarder forwarder
     )
     {
         _nextMiddleware = nextMiddleware;
         this.localPlatformSettings = localPlatformSettings;
-        _logger = logger;
+        _forwarder = forwarder;
     }
 
     private static readonly List<Regex> _noProxies =
@@ -37,10 +40,6 @@ public class ProxyMiddleware
             new Regex("^/storage/"),
         };
 
-    static readonly HttpClient _client = new HttpClient(
-        new HttpClientHandler { UseCookies = false, AllowAutoRedirect = false }
-    );
-
     public async Task Invoke(HttpContext context)
     {
         var path = context.Request.Path.Value;
@@ -49,6 +48,7 @@ public class ProxyMiddleware
             await _nextMiddleware(context);
             return;
         }
+        // TODO: only proxy requests to the actually running app
         foreach (var noProxy in _noProxies)
         {
             if (noProxy.IsMatch(path))
@@ -61,85 +61,29 @@ public class ProxyMiddleware
         return;
     }
 
+    public static HttpMessageInvoker _httpClient = new HttpMessageInvoker(
+        new SocketsHttpHandler
+        {
+            UseProxy = false,
+            AllowAutoRedirect = false,
+            AutomaticDecompression = DecompressionMethods.None,
+            UseCookies = false,
+            EnableMultipleHttp2Connections = true,
+            ActivityHeadersPropagator = new ReverseProxyPropagator(
+                DistributedContextPropagator.Current
+            ),
+            ConnectTimeout = TimeSpan.FromSeconds(15),
+        }
+    );
+
     public async Task ProxyRequest(HttpContext context, string newHost)
     {
-        var request = CreateTargetMessage(context, newHost);
-        context.Response.Headers.Append(
-            "X-Altinn-localtest-redirect",
-            request.RequestUri?.ToString()
-        );
-        using var response = await _client.SendAsync(
-            request,
-            HttpCompletionOption.ResponseHeadersRead
-        );
-        context.Response.StatusCode = (int)response.StatusCode;
-        CopyFromTargetResponseHeaders(context, response);
-        _logger.LogInformation(
-            "Proxying response status {status} from {method} {uri} ",
-            response.StatusCode,
-            request.Method,
-            request.RequestUri
-        );
-        await response.Content.CopyToAsync(context.Response.Body);
-    }
-
-    private static HttpRequestMessage CreateTargetMessage(HttpContext context, string newHost)
-    {
-        HttpRequestMessage requestMessage =
-            new()
-            {
-                RequestUri = new($"{newHost}{context.Request.Path}{context.Request.QueryString}"),
-                Method = new HttpMethod(context.Request.Method),
-            };
-
-        if (context.Request.ContentLength > 0)
+        var error = await _forwarder.SendAsync(context, newHost, _httpClient);
+        // Check if the operation was successful
+        if (error != ForwarderError.None)
         {
-            requestMessage.Content = new StreamContent(context.Request.Body);
+            var errorFeature = context.GetForwarderErrorFeature();
+            throw errorFeature?.Exception ?? new Exception("Forwarder error");
         }
-
-        foreach (var header in context.Request.Headers)
-        {
-            if (
-                requestMessage.Content is not null
-                && (header.Key == "Content-Type" || header.Key == "Content-Disposition")
-            )
-            {
-                requestMessage.Content.Headers.TryAddWithoutValidation(
-                    header.Key,
-                    header.Value.ToArray()
-                );
-            }
-            else
-            {
-                requestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
-            }
-        }
-        requestMessage.Headers.Host = new Uri(newHost).Host;
-        return requestMessage;
-    }
-
-    private static bool RequestMethodUsesBody(string method) =>
-        !(
-            HttpMethods.IsGet(method)
-            || HttpMethods.IsHead(method)
-            || HttpMethods.IsDelete(method)
-            || HttpMethods.IsTrace(method)
-        );
-
-    private static void CopyFromTargetResponseHeaders(
-        HttpContext context,
-        HttpResponseMessage responseMessage
-    )
-    {
-        foreach (var header in responseMessage.Headers)
-        {
-            context.Response.Headers[header.Key] = header.Value.ToArray();
-        }
-
-        foreach (var header in responseMessage.Content.Headers)
-        {
-            context.Response.Headers[header.Key] = header.Value.ToArray();
-        }
-        context.Response.Headers.Remove("transfer-encoding");
     }
 }
