@@ -28,16 +28,22 @@ namespace Altinn.Platform.Authorization.Controllers
     {
         private readonly IContextHandler _contextHandler;
         private readonly IPolicyRetrievalPoint _prp;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DecisionController"/> class.
         /// </summary>
         /// <param name="contextHandler">The Context handler</param>
         /// <param name="policyRetrievalPoint">The policy Retrieval point</param>
-        public DecisionController(IContextHandler contextHandler, IPolicyRetrievalPoint policyRetrievalPoint)
+        public DecisionController(
+            IContextHandler contextHandler,
+            IPolicyRetrievalPoint policyRetrievalPoint,
+            ILogger<DecisionController> logger
+        )
         {
             _contextHandler = contextHandler;
             _prp = policyRetrievalPoint;
+            _logger = logger;
         }
 
         /// <summary>
@@ -172,6 +178,7 @@ namespace Altinn.Platform.Authorization.Controllers
             XacmlJsonRequestRoot jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
 
             XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);
+            _logger.LogInformation($"Decision: {jsonResponse.Response[0].Decision}");
 
             return Ok(jsonResponse);
         }
@@ -185,6 +192,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
 
             string xml = builder.ToString();
+            _logger.LogInformation($"Decision: {xacmlContextResponse}");
 
             return Content(xml);
         }
