@@ -2,6 +2,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Constants;
@@ -158,4 +160,54 @@ public class AuthenticationService : IAuthentication
 
         return GenerateToken(principal);
     }
+
+    public string GenerateTokenForSystemUser(string systemId, string systemUserId, string systemUserOrgNumber, string supplierOrgNumber, string scope)
+    {
+        string iss = _generalSettings.Hostname;
+
+        var payload = new JwtPayload
+        {
+            { "iss", iss },
+            { "token_type", "Bearer" },
+            { "scope", scope },
+            { "client_id", Guid.NewGuid().ToString() },
+            { "jti", Guid.NewGuid().ToString() },
+            { AltinnCoreClaimTypes.OrgNumber, supplierOrgNumber },
+            { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
+            { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
+        };
+        
+        AuthorizationDetailsClaim authorizationDetails = new SystemUserAuthorizationDetailsClaim(
+            [Guid.Parse(systemUserId)],
+            systemId,
+            new OrgClaim(
+                "iso6523-actorid-upis",
+                 $"0192:{systemUserOrgNumber}"
+            )
+        );
+
+        var consumer = new OrgClaim(
+            "iso6523-actorid-upis",
+            $"0192:{supplierOrgNumber}"
+        );
+        payload.Add("authorization_details", JsonSerializer.SerializeToElement(authorizationDetails));
+        payload.Add("consumer", JsonSerializer.SerializeToElement(consumer));
+
+        return "";
+    }
+
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+    [JsonDerivedType(typeof(SystemUserAuthorizationDetailsClaim), typeDiscriminator: "urn:altinn:systemuser")]
+    internal record AuthorizationDetailsClaim();
+
+    internal sealed record SystemUserAuthorizationDetailsClaim(
+        [property: JsonPropertyName("systemuser_id")] IReadOnlyList<Guid> SystemUserId,
+        [property: JsonPropertyName("system_id")] string SystemId,
+        [property: JsonPropertyName("systemuser_org")] OrgClaim SystemUserOrg
+    ) : AuthorizationDetailsClaim();
+
+    internal sealed record OrgClaim(
+        [property: JsonPropertyName("authority")] string Authority,
+        [property: JsonPropertyName("ID")] string Id
+    );
 }
