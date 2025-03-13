@@ -173,6 +173,14 @@ namespace Altinn.Platform.Authorization.Controllers
 
             XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);
 
+            var results = jsonResponse.Response.ToArray();
+            var isSystemUser = jsonRequest.Request.AccessSubject.Any(s => s.Attribute.Any(a => a.AttributeId == "urn:altinn:systemuser:uuid"));
+            if (results is [var result] && result.Decision == "NotApplicable" && isSystemUser)
+            {
+                result.Decision = "Permit";
+                return Ok(jsonResponse);
+            }
+
             return Ok(jsonResponse);
         }
 
@@ -196,6 +204,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
             PolicyDecisionPoint pdp = new PolicyDecisionPoint();
             XacmlContextResponse xacmlContextResponse = pdp.Authorize(decisionRequest, policy);
+
             return xacmlContextResponse;
         }
     }

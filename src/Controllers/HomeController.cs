@@ -235,6 +235,37 @@ namespace LocalTest.Controllers
             return Ok(token);
         }
 
+        /// <summary>
+        /// Create system user token
+        /// </summary>
+        /// <param name="systemId"></param>
+        /// <param name="systemUserId"></param>
+        /// <param name="systemUserOrgNumber"></param>
+        /// <param name="supplierOrgNumber"></param>
+        /// <param name="scope"></param>
+        /// <returns></returns>
+        [HttpGet("/Home/GetTestSystemUserToken")]
+        public async Task<ActionResult> GetTestSystemUserToken(
+            [FromQuery] string systemId, 
+            [FromQuery] string systemUserId, 
+            [FromQuery] string systemUserOrgNumber, 
+            [FromQuery] string supplierOrgNumber, 
+            [FromQuery] string scope
+        )
+        {
+            systemId ??= Guid.NewGuid().ToString();
+            systemUserId ??= Guid.NewGuid().ToString();
+            string token = await _authenticationService.GenerateTokenForSystemUser(
+                systemId, 
+                systemUserId, 
+                systemUserOrgNumber, 
+                supplierOrgNumber, 
+                scope
+            );
+
+            return Ok(token);
+        }
+
         private async Task<IEnumerable<SelectListItem>> GetTestUsersAndPartiesSelectList()
         {
             var data = await _testDataService.GetTestData();

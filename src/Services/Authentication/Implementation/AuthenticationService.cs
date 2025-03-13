@@ -10,6 +10,7 @@ using AltinnCore.Authentication.Constants;
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Services.Authentication.Interface;
+using LocalTest.Services.Register.Interface;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using AuthSettings = Altinn.Platform.Authentication.Configuration.GeneralSettings;
@@ -22,28 +23,26 @@ public class AuthenticationService : IAuthentication
     private readonly AuthSettings _authSettings;
     private readonly GeneralSettings _generalSettings;
     private readonly IClaims _claimsService;
+    private readonly IOrganizations _organisations;
 
     public AuthenticationService(
         AltinnOrgsClient orgsClient,
         IOptions<AuthSettings> authSettings,
         IOptions<GeneralSettings> generalSettings,
-        IClaims claimsService
+        IClaims claimsService,
+        IOrganizations organisations
     )
     {
         _orgsClient = orgsClient;
         _authSettings = authSettings.Value;
         _generalSettings = generalSettings.Value;
         _claimsService = claimsService;
+        _organisations = organisations;
     }
 
     ///<inheritdoc/>
     public string GenerateToken(ClaimsPrincipal principal)
     {
-        List<X509Certificate2> certificates = new List<X509Certificate2>
-        {
-            new X509Certificate2("jwtselfsignedcert.pfx", "qwer1234") // lgtm [cs/hardcoded-credentials]
-        };
-
         TimeSpan tokenExpiry = new TimeSpan(0, _authSettings.GetJwtCookieValidityTime, 0);
 
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
@@ -51,7 +50,7 @@ public class AuthenticationService : IAuthentication
         {
             Subject = new ClaimsIdentity(principal.Identity),
             Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
-            SigningCredentials = new X509SigningCredentials(certificates[0])
+            SigningCredentials = GetSigningCredentials(),
         };
 
         SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
@@ -59,6 +58,27 @@ public class AuthenticationService : IAuthentication
 
         return serializedToken;
     }
+
+    public string GenerateToken(JwtPayload payload)
+    {
+        var now = DateTimeOffset.UtcNow;
+        TimeSpan tokenExpiry = new TimeSpan(0, _authSettings.GetJwtCookieValidityTime, 0);
+
+        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+        
+        var header = new JwtHeader(GetSigningCredentials());
+
+        payload.TryAdd("exp", now.Add(tokenExpiry).ToUnixTimeSeconds());
+        payload.TryAdd("iat", now.ToUnixTimeSeconds());
+        payload.TryAdd("nbf", now.ToUnixTimeSeconds());
+        payload.TryAdd("jti", Guid.NewGuid().ToString());
+
+        var securityToken = new JwtSecurityToken(header, payload);
+        return tokenHandler.WriteToken(securityToken);
+    }
+
+    private static X509SigningCredentials GetSigningCredentials() =>
+        new X509SigningCredentials(new X509Certificate2("jwtselfsignedcert.pfx", "qwer1234")); // lgtm [cs/hardcoded-credentials]
 
     /// <inheritdoc />
     public async Task<string> GenerateTokenForOrg(
@@ -161,9 +181,17 @@ public class AuthenticationService : IAuthentication
         return GenerateToken(principal);
     }
 
-    public string GenerateTokenForSystemUser(string systemId, string systemUserId, string systemUserOrgNumber, string supplierOrgNumber, string scope)
+    public async Task<string> GenerateTokenForSystemUser(string systemId, string systemUserId, string systemUserOrgNumber, string supplierOrgNumber, string scope)
     {
         string iss = _generalSettings.Hostname;
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(systemUserOrgNumber);
+        ArgumentException.ThrowIfNullOrWhiteSpace(supplierOrgNumber);
+        ArgumentException.ThrowIfNullOrWhiteSpace(scope);
+        
+        var org = await _organisations.GetOrganization(systemUserOrgNumber);
+        if (org is null)
+            throw new ArgumentException("Organization not found in register", nameof(systemUserOrgNumber));
 
         var payload = new JwtPayload
         {
@@ -193,21 +221,21 @@ public class AuthenticationService : IAuthentication
         payload.Add("authorization_details", JsonSerializer.SerializeToElement(authorizationDetails));
         payload.Add("consumer", JsonSerializer.SerializeToElement(consumer));
 
-        return "";
+        return GenerateToken(payload);
     }
-
-    [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-    [JsonDerivedType(typeof(SystemUserAuthorizationDetailsClaim), typeDiscriminator: "urn:altinn:systemuser")]
-    internal record AuthorizationDetailsClaim();
-
-    internal sealed record SystemUserAuthorizationDetailsClaim(
-        [property: JsonPropertyName("systemuser_id")] IReadOnlyList<Guid> SystemUserId,
-        [property: JsonPropertyName("system_id")] string SystemId,
-        [property: JsonPropertyName("systemuser_org")] OrgClaim SystemUserOrg
-    ) : AuthorizationDetailsClaim();
-
-    internal sealed record OrgClaim(
-        [property: JsonPropertyName("authority")] string Authority,
-        [property: JsonPropertyName("ID")] string Id
-    );
 }
+
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(SystemUserAuthorizationDetailsClaim), typeDiscriminator: "urn:altinn:systemuser")]
+internal record AuthorizationDetailsClaim();
+
+internal sealed record SystemUserAuthorizationDetailsClaim(
+    [property: JsonPropertyName("systemuser_id")] IReadOnlyList<Guid> SystemUserId,
+    [property: JsonPropertyName("system_id")] string SystemId,
+    [property: JsonPropertyName("systemuser_org")] OrgClaim SystemUserOrg
+) : AuthorizationDetailsClaim();
+
+internal sealed record OrgClaim(
+    [property: JsonPropertyName("authority")] string Authority,
+    [property: JsonPropertyName("ID")] string Id
+);
