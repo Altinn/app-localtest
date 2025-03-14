@@ -46,7 +46,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <returns>The configuration object for Open ID Connect.</returns>
         [HttpGet("openid-configuration")]
         public async Task<IActionResult> GetOpenIdConfiguration()
-        {            
+        {
             string baseUrl = $"http://{Request.Host.Host}:{Request.Host.Port}/";
 
             DiscoveryDocument discoveryDocument = new DiscoveryDocument

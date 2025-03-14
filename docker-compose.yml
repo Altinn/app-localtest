@@ -74,8 +74,6 @@ services:
       - ${ALTINN3LOCALSTORAGE_PATH:-AltinnPlatformLocal}:/AltinnPlatformLocal
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    depends_on:
-      - localtest_loadbalancer
 
   monitoring_otel_collector:
     container_name: monitoring_otel_collector
