@@ -137,23 +137,21 @@ namespace LocalTest
             services.AddSingleton<IApplicationService, ApplicationService>();
             services.AddMemoryCache();
 
-            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
-            SecurityKey key = new X509SecurityKey(cert);
-
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = key,
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.Zero
                     };
-                    // options.MetadataAddress = Configuration["AppSettings:OpenIdWellKnownEndpoint"];
+                    options.JwtCookieName = "AltinnStudioRuntime";
+                    options.MetadataAddress = new Uri($"http://localhost:5101/authentication/api/v1/openid").ToString();;
+                    options.RequireHttpsMetadata = false;
                 });
 
             services.AddAuthorization(options =>

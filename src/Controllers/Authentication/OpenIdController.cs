@@ -46,8 +46,8 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <returns>The configuration object for Open ID Connect.</returns>
         [HttpGet("openid-configuration")]
         public async Task<IActionResult> GetOpenIdConfiguration()
-        {
-            string baseUrl = generalSettings.GetPlatformEndpoint;
+        {            
+            string baseUrl = $"http://{Request.Host.Host}:{Request.Host.Port}/";
 
             DiscoveryDocument discoveryDocument = new DiscoveryDocument
             {
@@ -61,7 +61,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 TokenEndpoint = new Uri(baseUrl).ToString(),
 
                 // REQUIRED
-                JwksUri = new Uri(baseUrl + "authentication/api/v1/OpenId/.well-known/openid-configuration/jwks").ToString(),
+                JwksUri = new Uri(baseUrl + "authentication/api/v1/openid/.well-known/openid-configuration/jwks").ToString(),
 
                 // REQUIRED
                 ResponseTypesSupported = new[] { "token" }, // "code", "id_token", "id_token token", 

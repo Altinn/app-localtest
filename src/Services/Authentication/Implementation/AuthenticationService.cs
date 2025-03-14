@@ -22,6 +22,7 @@ public class AuthenticationService : IAuthentication
     private readonly AltinnOrgsClient _orgsClient;
     private readonly AuthSettings _authSettings;
     private readonly GeneralSettings _generalSettings;
+    private readonly CertificateSettings _certSettings;
     private readonly IClaims _claimsService;
     private readonly IOrganizations _organisations;
 
@@ -29,6 +30,7 @@ public class AuthenticationService : IAuthentication
         AltinnOrgsClient orgsClient,
         IOptions<AuthSettings> authSettings,
         IOptions<GeneralSettings> generalSettings,
+        IOptions<CertificateSettings> certSettings,
         IClaims claimsService,
         IOrganizations organisations
     )
@@ -36,6 +38,7 @@ public class AuthenticationService : IAuthentication
         _orgsClient = orgsClient;
         _authSettings = authSettings.Value;
         _generalSettings = generalSettings.Value;
+        _certSettings = certSettings.Value;
         _claimsService = claimsService;
         _organisations = organisations;
     }
@@ -77,9 +80,9 @@ public class AuthenticationService : IAuthentication
         return tokenHandler.WriteToken(securityToken);
     }
 
-    private static X509SigningCredentials GetSigningCredentials()
+    private X509SigningCredentials GetSigningCredentials()
     {
-        var cert = new X509Certificate2("jwtselfsignedcert.pfx", "qwer1234"); // lgtm [cs/hardcoded-credentials]
+        var cert = new X509Certificate2(_certSettings.CertificatePath, _certSettings.CertificatePwd);
         return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
     }
 
