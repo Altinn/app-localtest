@@ -77,8 +77,11 @@ public class AuthenticationService : IAuthentication
         return tokenHandler.WriteToken(securityToken);
     }
 
-    private static X509SigningCredentials GetSigningCredentials() =>
-        new X509SigningCredentials(new X509Certificate2("jwtselfsignedcert.pfx", "qwer1234")); // lgtm [cs/hardcoded-credentials]
+    private static X509SigningCredentials GetSigningCredentials()
+    {
+        var cert = new X509Certificate2("jwtselfsignedcert.pfx", "qwer1234"); // lgtm [cs/hardcoded-credentials]
+        return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
+    }
 
     /// <inheritdoc />
     public async Task<string> GenerateTokenForOrg(
@@ -195,7 +198,7 @@ public class AuthenticationService : IAuthentication
 
         var payload = new JwtPayload
         {
-            { "iss", iss },
+            // { "iss", iss },
             { "token_type", "Bearer" },
             { "scope", scope },
             { "client_id", Guid.NewGuid().ToString() },

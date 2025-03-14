@@ -153,6 +153,7 @@ namespace LocalTest
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.Zero
                     };
+                    // options.MetadataAddress = Configuration["AppSettings:OpenIdWellKnownEndpoint"];
                 });
 
             services.AddAuthorization(options =>
@@ -224,17 +225,21 @@ namespace LocalTest
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+            
+            var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);
+            if (!storagePath.Exists)
+                storagePath.Create();
+            
             app.UseStaticFiles(new StaticFileOptions
             {
-                FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),
+                FileProvider = new PhysicalFileProvider(storagePath.FullName),
                 RequestPath = "/LocalPlatformStorage",
                 ServeUnknownFileTypes = true,
             });
 
             app.UseDirectoryBrowser(new DirectoryBrowserOptions
             {
-                FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),
+                FileProvider = new PhysicalFileProvider(storagePath.FullName),
                 RequestPath = "/LocalPlatformStorage",
                 Formatter = new SortedHtmlDirectoryFormatter(),
             });
