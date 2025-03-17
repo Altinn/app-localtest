@@ -190,6 +190,7 @@ namespace LocalTest.Controllers
             {
                 AuthenticationLevels = GetAuthenticationLevels(2),
                 TestUsers = await GetUsersSelectList(),
+                TestSystemUsers = await GetSystemUsersSelectList(),
                 DefaultOrg = _localPlatformSettings.LocalAppMode == "http" ? (await GetAppsList()).First().Value?.Split("/").FirstOrDefault() : null,
             };
 
@@ -253,8 +254,20 @@ namespace LocalTest.Controllers
             [FromQuery] string scope
         )
         {
-            systemId ??= Guid.NewGuid().ToString();
-            systemUserId ??= Guid.NewGuid().ToString();
+            // systemId ??= Guid.NewGuid().ToString();
+            // systemUserId ??= Guid.NewGuid().ToString();
+            if (!string.IsNullOrWhiteSpace(systemUserId))
+            {
+                var testData = await _testDataService.GetTestData();
+                if (!testData.Authorization.SystemUsers.ContainsKey(systemUserId))
+                    return BadRequest();
+
+                var systemUser = testData.Authorization.SystemUsers[systemUserId];
+                systemId = systemUser.SystemId;
+                var system = testData.Authorization.Systems[systemId];
+                systemUserOrgNumber = systemUser.PartyOrgNo;
+                supplierOrgNumber = system.Id.Split('_')[0];
+            }
             string token = await _authenticationService.GenerateTokenForSystemUser(
                 systemId, 
                 systemUserId, 
@@ -320,6 +333,24 @@ namespace LocalTest.Controllers
                 {
                     Text = properProfile?.Party.Name,
                     Value = profile.UserId.ToString(),
+                });
+            }
+
+            return testUsers;
+        }
+
+        private async Task<List<SelectListItem>> GetSystemUsersSelectList()
+        {
+            var data = await _testDataService.GetTestData();
+            var testUsers = new List<SelectListItem>();
+            var orgs = data.Register.Org;
+            foreach (var systemUser in data.Authorization.SystemUsers.Values)
+            {
+                var org = orgs[systemUser.PartyOrgNo];
+                testUsers.Add(new()
+                {
+                    Text = $"{systemUser.PartyOrgNo} - {org.Name}",
+                    Value = systemUser.Id,
                 });
             }
 
