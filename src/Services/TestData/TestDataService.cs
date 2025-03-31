@@ -30,13 +30,23 @@ public class TestDataService
                 entry.SlidingExpiration = TimeSpan.FromSeconds(5);
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30);
 
+                var diskModel = await TestDataDiskReader.ReadFromDisk(_settings.LocalTestingStaticTestDataPath);
+                void PopulateDefaults(TestDataModel model)
+                {
+                    // TODO: this is weird
+                    model.Authorization.Systems = diskModel.Authorization.Systems;
+                    model.Authorization.SystemUsers = diskModel.Authorization.SystemUsers;
+                }
+
                 try
                 {
                     var appData = await _localApp.GetTestData();
 
                     if (appData is not null)
                     {
-                        return appData.GetTestDataModel();
+                        var model = appData.GetTestDataModel();
+                        PopulateDefaults(model);
+                        return model;
                     }
                 }
                 catch (HttpRequestException e)
@@ -48,7 +58,9 @@ public class TestDataService
                 if (tenorUsers is not null && !tenorUsers.IsEmpty())
                 {
                     // Use tenor users if they exist
-                    return tenorUsers.GetTestDataModel();
+                    var model = tenorUsers.GetTestDataModel();
+                    PopulateDefaults(model);
+                    return model;
                 }
 
                 //Fallback to Ola Nordmann, Sofie Salt ... if no other users are availible

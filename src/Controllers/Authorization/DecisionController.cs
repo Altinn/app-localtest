@@ -11,7 +11,9 @@ using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Constants;
 using Altinn.Platform.Authorization.ModelBinding;
+using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
+using LocalTest.Services.AccessManagement;
 using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.TestData;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +35,8 @@ namespace Altinn.Platform.Authorization.Controllers
         private readonly IPolicyRetrievalPoint _prp;
         private readonly TestDataService _testDataService;
         private readonly IOptions<LocalPlatformSettings> _localPlatformSettings;
+        private readonly LocalInstanceDelegationsRepository _instanceDelegationsRepository;
+        private readonly IInstanceRepository _instanceRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DecisionController"/> class.
@@ -44,7 +48,9 @@ namespace Altinn.Platform.Authorization.Controllers
             IContextHandler contextHandler, 
             IPolicyRetrievalPoint policyRetrievalPoint,
             TestDataService testDataService,
-            IOptions<LocalPlatformSettings> localPlatformSettings
+            IOptions<LocalPlatformSettings> localPlatformSettings,
+            LocalInstanceDelegationsRepository instanceDelegationsRepository,
+            IInstanceRepository instanceRepository
         )
         {
             _logger = logger;
@@ -52,6 +58,8 @@ namespace Altinn.Platform.Authorization.Controllers
             _prp = policyRetrievalPoint;
             _testDataService = testDataService;
             _localPlatformSettings = localPlatformSettings;
+            _instanceDelegationsRepository = instanceDelegationsRepository;
+            _instanceRepository = instanceRepository;
         }
 
         /// <summary>
@@ -214,7 +222,16 @@ namespace Altinn.Platform.Authorization.Controllers
             XacmlContextResponse delegationResponse = null;
             if (appPolicyResult.Decision.Equals(XacmlContextDecision.NotApplicable))
             {
-                delegationResponse = await AuthorizeUsingDelegations(appPolicyResponse, decisionRequest, pdp);
+                try 
+                {
+                    delegationResponse = await AuthorizeUsingDelegations(appPolicyResponse, decisionRequest, pdp);
+                }
+                catch (Exception ex)
+                {
+                    // Delegations in localtest is very much hacked together and not very robust,
+                    // so for now we will just ignore failures and log them
+                    _logger.LogError(ex, "Failed to authorize using delegations");
+                }
             }
 
             await AuditRequest(decisionRequest, appPolicyResponse, delegationResponse);
@@ -231,90 +248,118 @@ namespace Altinn.Platform.Authorization.Controllers
         )
         {
             var subjectCategory = new Uri(XacmlConstants.MatchAttributeCategory.Subject);
-            var systemUserUUidId = new Uri(AltinnXacmlUrns.SystemUserUuid);
-            var subjectAttribute = decisionRequest.Attributes.SingleOrDefault(a => a.Category == subjectCategory);
-            if (subjectAttribute is not null)
+            var resourceCategory =  new Uri(XacmlConstants.MatchAttributeCategory.Resource);
+            var subjectAttributes = decisionRequest.Attributes.SingleOrDefault(a => a.Category == subjectCategory);
+            var resourceAttributes = decisionRequest.Attributes.SingleOrDefault(a => a.Category == resourceCategory);
+
+            if (resourceAttributes is null || subjectAttributes is null)
+                throw new Exception("Missing subject and resource attributes in authorization request");
+
+            // System user delegations
+            var systemUserUUidUrn = new Uri(AltinnXacmlUrns.SystemUserUuid);
+            var systemUserAttr = subjectAttributes.Attributes.SingleOrDefault(a => a.AttributeId == systemUserUUidUrn);
+            if (systemUserAttr is not null)
             {
-                var systemUserAttr = subjectAttribute.Attributes.SingleOrDefault(a => a.AttributeId == systemUserUUidId);
-                if (systemUserAttr is not null)
+                var systemUserAttrValue = systemUserAttr.AttributeValues.Single();
+                var testData = await _testDataService.GetTestData();
+                // Generate XACML policy in memory where the system user has access to the party associated 
+                // with the organisation number of the systemuser
+                if (!testData.Authorization.SystemUsers.TryGetValue(systemUserAttrValue.Value, out var systemUser))
+                    return appPolicyResponse;
+
+                var orgNo = systemUser.PartyOrgNo;
+                var org = testData.Register.Party.Single(p => p.Value.OrgNumber == orgNo).Value;
+                var partyId = org.PartyId;
+                var suPolicy = new XacmlPolicy(
+                    new Uri("urn:altinn:policyid:systemuser"), 
+                    new Uri("urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides"), 
+                    new XacmlTarget(null)
+                )
                 {
-                    var systemUserAttrValue = systemUserAttr.AttributeValues.Single();
-                    var testData = await _testDataService.GetTestData();
-                    // Generate XACML policy in memory where the system user has access to the party associated 
-                    // with the organisation number of the systemuser
-                    if (!testData.Authorization.SystemUsers.TryGetValue(systemUserAttrValue.Value, out var systemUser))
-                        return appPolicyResponse;
+                    Description = "Policy for system user",
+                };
 
-                    var orgNo = systemUser.PartyOrgNo;
-                    var org = testData.Register.Party.Single(p => p.Value.OrgNumber == orgNo).Value;
-                    var partyId = org.PartyId;
-                    var suPolicy = new XacmlPolicy(
-                        new Uri("urn:altinn:policyid:systemuser"), 
-                        new Uri("urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides"), 
-                        new XacmlTarget(null)
-                    )
-                    {
-                        Description = "Policy for system user",
-                    };
+                var resourceAttributesList = resourceAttributes.Attributes.Select(
+                    a => (AttributeId: a.AttributeId, Value: a.AttributeValues.Single())
+                ).ToArray();
 
-                    var resourceAttributesCategory = decisionRequest.Attributes
-                        .SingleOrDefault(a => a.Category == new Uri(XacmlConstants.MatchAttributeCategory.Resource));
-                    var resourceAttributes = resourceAttributesCategory?.Attributes.Select(
-                        a => (AttributeId: a.AttributeId, Value: a.AttributeValues.Single())
-                    ).ToArray();
-
-                    suPolicy.Rules.Add(new XacmlRule("urn:altinn:ruleid:systemuser", XacmlEffectType.Permit)
-                    {
-                        Target = new XacmlTarget([
-                            // Subject (should only be 1 attr in the case of systemusers)
-                            new XacmlAnyOf([
-                                new XacmlAllOf([
-                                    new XacmlMatch(
-                                        matchId: new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
-                                        attributeValue: systemUserAttrValue,
-                                        attributeDesignator: new XacmlAttributeDesignator(
-                                            category: subjectCategory,
-                                            attributeId: systemUserUUidId,
-                                            dataType: systemUserAttrValue.DataType,
-                                            mustBePresent: false
-                                        )
+                suPolicy.Rules.Add(new XacmlRule("urn:altinn:ruleid:systemuser", XacmlEffectType.Permit)
+                {
+                    Target = new XacmlTarget([
+                        // Subject (should only be 1 attr in the case of systemusers)
+                        new XacmlAnyOf([
+                            new XacmlAllOf([
+                                new XacmlMatch(
+                                    matchId: new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
+                                    attributeValue: systemUserAttrValue,
+                                    attributeDesignator: new XacmlAttributeDesignator(
+                                        category: subjectCategory,
+                                        attributeId: systemUserUUidUrn,
+                                        dataType: systemUserAttrValue.DataType,
+                                        mustBePresent: false
                                     )
-                                ])
-                            ]),
-                            // Resource
-                            new XacmlAnyOf([
-                                new XacmlAllOf([
-                                    ..resourceAttributes.Select(a => new XacmlMatch(
-                                        matchId: new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
-                                        attributeValue: a.Value,
-                                        attributeDesignator: new XacmlAttributeDesignator(
-                                            category: new Uri(XacmlConstants.MatchAttributeCategory.Resource),
-                                            attributeId: a.AttributeId,
-                                            dataType: a.Value.DataType,
-                                            mustBePresent: false
-                                        )
-                                    ))
-                                ])
-                            ]),
-                            // Actions
-                            ..systemUser.AppRights.Select(a => new XacmlAnyOf([
-                                new XacmlAllOf([
-                                    new XacmlMatch(
-                                        matchId: new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
-                                        attributeValue: new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), a),
-                                        attributeDesignator: new XacmlAttributeDesignator(
-                                            category: new Uri(XacmlConstants.MatchAttributeCategory.Action),
-                                            attributeId: new Uri(XacmlConstants.MatchAttributeIdentifiers.ActionId),
-                                            dataType: new Uri(XacmlConstants.DataTypes.XMLString),
-                                            mustBePresent: false
-                                        )
+                                )
+                            ])
+                        ]),
+                        // Resource
+                        new XacmlAnyOf([
+                            new XacmlAllOf([
+                                ..resourceAttributesList.Select(a => new XacmlMatch(
+                                    matchId: new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
+                                    attributeValue: a.Value,
+                                    attributeDesignator: new XacmlAttributeDesignator(
+                                        category: new Uri(XacmlConstants.MatchAttributeCategory.Resource),
+                                        attributeId: a.AttributeId,
+                                        dataType: a.Value.DataType,
+                                        mustBePresent: false
                                     )
-                                ])
-                            ])),
-                        ])
-                    });
+                                ))
+                            ])
+                        ]),
+                        // Actions
+                        ..systemUser.AppRights.Select(a => new XacmlAnyOf([
+                            new XacmlAllOf([
+                                new XacmlMatch(
+                                    matchId: new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
+                                    attributeValue: new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), a),
+                                    attributeDesignator: new XacmlAttributeDesignator(
+                                        category: new Uri(XacmlConstants.MatchAttributeCategory.Action),
+                                        attributeId: new Uri(XacmlConstants.MatchAttributeIdentifiers.ActionId),
+                                        dataType: new Uri(XacmlConstants.DataTypes.XMLString),
+                                        mustBePresent: false
+                                    )
+                                )
+                            ])
+                        ])),
+                    ])
+                });
 
-                    return pdp.Authorize(decisionRequest, suPolicy);
+                return pdp.Authorize(decisionRequest, suPolicy);
+            }
+
+            // Read instance delegations
+            var instanceIdUrn = new Uri(AltinnXacmlUrns.InstanceId);
+            var taskIdUrn = new Uri(AltinnXacmlUrns.TaskId);
+            var instanceIdAttr = resourceAttributes.Attributes.SingleOrDefault(a => a.AttributeId == instanceIdUrn);
+            var taskIdAttr = resourceAttributes.Attributes.SingleOrDefault(a => a.AttributeId == taskIdUrn);
+            if (instanceIdAttr is not null)
+            {
+                _logger.LogWarning("Would do instance delegation stuff...");
+                var instanceId = instanceIdAttr.AttributeValues.Single().Value;
+                var split = instanceId.Split('/');
+                if (split.Length != 2)
+                    throw new Exception("Invalid instance id format - should be <instanceOwnerId>/<instanceGuid>");
+                var instanceOwnerId = int.Parse(split[0]);
+                var instanceGuid = Guid.Parse(split[1]);
+                var instance = await _instanceRepository.GetOne(instanceOwnerId, instanceGuid);
+                var delegations = await _instanceDelegationsRepository.Read(instanceGuid);
+                var currentTaskId = instance.Process?.CurrentTask?.ElementId;
+                var reqTaskId = taskIdAttr?.AttributeValues.SingleOrDefault()?.Value;
+                if (string.IsNullOrWhiteSpace(currentTaskId)) currentTaskId = null;
+                if (string.IsNullOrWhiteSpace(reqTaskId)) reqTaskId = null;
+                if (currentTaskId == reqTaskId)
+                {
+                    // var d = delegations.Where(d => d.From.Value == )
                 }
             }
 
