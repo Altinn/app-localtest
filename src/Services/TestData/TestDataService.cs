@@ -45,7 +45,6 @@ public class TestDataService
                     if (appData is not null)
                     {
                         var model = appData.GetTestDataModel();
-                        PopulateDefaults(model);
                         return model;
                     }
                 }
@@ -64,7 +63,7 @@ public class TestDataService
                 }
 
                 //Fallback to Ola Nordmann, Sofie Salt ... if no other users are availible
-                return await TestDataDiskReader.ReadFromDisk(_settings.LocalTestingStaticTestDataPath);
+                return diskModel;
             }))!;
     }
 }
