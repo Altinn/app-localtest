@@ -138,22 +138,21 @@ namespace LocalTest
             services.AddSingleton<IApplicationService, ApplicationService>();
             services.AddMemoryCache();
 
-            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
-            SecurityKey key = new X509SecurityKey(cert);
-
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = key,
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.Zero
                     };
+                    options.JwtCookieName = "AltinnStudioRuntime";
+                    options.MetadataAddress = new Uri($"http://localhost:5101/authentication/api/v1/openid").ToString();;
+                    options.RequireHttpsMetadata = false;
                 });
 
             services.AddAuthorization(options =>
@@ -232,17 +231,21 @@ namespace LocalTest
 
             app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
-
+            
+            var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);
+            if (!storagePath.Exists)
+                storagePath.Create();
+            
             app.UseStaticFiles(new StaticFileOptions
             {
-                FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),
+                FileProvider = new PhysicalFileProvider(storagePath.FullName),
                 RequestPath = "/LocalPlatformStorage",
                 ServeUnknownFileTypes = true,
             });
 
             app.UseDirectoryBrowser(new DirectoryBrowserOptions
             {
-                FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),
+                FileProvider = new PhysicalFileProvider(storagePath.FullName),
                 RequestPath = "/LocalPlatformStorage",
                 Formatter = new SortedHtmlDirectoryFormatter(),
             });

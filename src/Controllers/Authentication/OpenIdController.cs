@@ -61,7 +61,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 TokenEndpoint = new Uri(baseUrl).ToString(),
 
                 // REQUIRED
-                JwksUri = new Uri(baseUrl + "authentication/api/v1/OpenId/.well-known/openid-configuration/jwks").ToString(),
+                JwksUri = new Uri(baseUrl + "authentication/api/v1/openid/.well-known/openid-configuration/jwks").ToString(),
 
                 // REQUIRED
                 ResponseTypesSupported = new[] { "token" }, // "code", "id_token", "id_token token", 
