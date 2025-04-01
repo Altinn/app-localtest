@@ -87,6 +87,10 @@ public sealed class LocalInstanceDelegationsRepository
         hasher.Append(encoding.GetBytes(delegation.To.Value));
         hasher.Append(encoding.GetBytes(delegation.ResourceId));
         hasher.Append(encoding.GetBytes(delegation.InstanceId));
-        return Convert.ToBase64String(hasher.GetCurrentHash());
+        var b64 = Convert.ToBase64String(hasher.GetCurrentHash());
+        b64 = b64.Replace('/', '_');
+        b64 = b64.Replace('+', '_');
+        b64 = b64.Replace('=', '_');
+        return b64;
     }
 }
