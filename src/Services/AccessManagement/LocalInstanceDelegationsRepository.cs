@@ -23,7 +23,7 @@ public sealed class LocalInstanceDelegationsRepository
 
     private DirectoryInfo Storage()
     {
-        var dir = new DirectoryInfo(Path.Join(_settings.LocalTestingStorageBasePath, _settings.InstancceDelegationsDataFolder));
+        var dir = new DirectoryInfo(Path.Join(_settings.LocalTestingStorageBasePath, _settings.InstanceDelegationsDataFolder));
         if (!dir.Exists)
         {
             dir.Create();
