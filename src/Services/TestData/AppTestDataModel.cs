@@ -36,7 +36,7 @@ public class AppTestDataModel
     {
         var org = Orgs.Select(o => (Organization)o).ToDictionary(o => o.OrgNumber);
         var party = GetParties();
-        var person = Persons.Select(p => (Person)p).Where(p=>!string.IsNullOrEmpty(p.SSN)).ToDictionary(p => p.SSN);
+        var person = Persons.Select(p => (Person)p).Where(p => !string.IsNullOrEmpty(p.SSN)).ToDictionary(p => p.SSN);
         return new TestDataRegister()
         {
             Org = org,
@@ -62,40 +62,68 @@ public class AppTestDataModel
         var partyList = Persons
             .ToDictionary(
                 p => p.UserId.ToString(),
-                p => {
-                    var partiesForUser = new List<Party>{p.ToParty()};
+                p =>
+                {
+                    var partiesForUser = new List<Party> { p.ToParty() };
                     partiesForUser.AddRange(p.PartyRoles.Keys.Select(partyId =>
                         parties.TryGetValue(partyId.ToString(), out var value) ? value! : null!
                     ));
-                    return partiesForUser.Where(p=>p is not null).ToList();
+                    return partiesForUser.Where(p => p is not null).ToList();
                 });
         var roles = Persons.ToDictionary(p => p.UserId.ToString(), p => p.PartyRoles.ToDictionary(r => r.Key.ToString(), r => r.Value));
 
-        var systems = Systems?.ToDictionary(s => s.Id, s => new TestDataSystem(
-            s.Id,
-            s.Name,
-            s.SystemUsers?.ToDictionary(su => su.Id, su => new TestDataSystemUser(
-                su.Id,
-                s.Id,
-                su.OrgNumber,
-                su.Actions
-            )) ?? new()
-        ));
+        Dictionary<string, TestDataSystem> systems;
+        Dictionary<string, TestDataSystemUser> systemUsers;
+
+        if (Systems == null || Systems.Count == 0)
+        {
+            systems = [];
+            systemUsers = [];
+        }
+        else
+        {
+            systems = Systems.ToDictionary(
+                s => s.Id,
+                s => new TestDataSystem(
+                    s.Id,
+                    s.Name,
+                    s.SystemUsers?.ToDictionary(
+                        su => su.Id,
+                        su => new TestDataSystemUser(
+                            su.Id,
+                            s.Id,
+                            su.OrgNumber,
+                            su.Actions
+                        )
+                    ) ?? []
+                )
+            );
+
+            var systemUsersList = Systems
+                .Where(s => s.SystemUsers != null)
+                .SelectMany(s => s.SystemUsers?.Select(su => (SystemId: s.Id, SystemUser: su)) ?? [])
+                .Where(item => item.SystemUser != null);
+
+            systemUsers = systemUsersList.Any()
+                ? systemUsersList.ToDictionary(
+                    d => d.SystemUser.Id,
+                    d => new TestDataSystemUser(
+                        d.SystemUser.Id,
+                        d.SystemId,
+                        d.SystemUser.OrgNumber,
+                        d.SystemUser.Actions
+                    )
+                )
+                : [];
+        }
 
         return new TestDataAuthorization
         {
             Claims = claims,
             PartyList = partyList,
             Roles = roles,
-            Systems = systems ?? new(),
-            SystemUsers = Systems?
-                .SelectMany(s => s.SystemUsers.Select(su => (SystemId: s.Id, SystemUser: su)))
-                .ToDictionary(d => d.SystemUser.Id, d => new TestDataSystemUser(
-                    d.SystemUser.Id,
-                    d.SystemId,
-                    d.SystemUser.OrgNumber,
-                    d.SystemUser.Actions
-                )) ?? new()
+            Systems = systems,
+            SystemUsers = systemUsers
         };
     }
 
@@ -234,8 +262,8 @@ public class AppTestOrg
 
     public Party ToParty(List<AppTestOrg>? potentialChildOrgs = null)
     {
-        List<Party>? childParties = potentialChildOrgs?.Where(o=>o.ParentPartyId == PartyId).Select(o=>o.ToParty()).ToList();
-        if(childParties?.Count == 0)
+        List<Party>? childParties = potentialChildOrgs?.Where(o => o.ParentPartyId == PartyId).Select(o => o.ToParty()).ToList();
+        if (childParties?.Count == 0)
         {
             childParties = null;
         }
@@ -403,7 +431,7 @@ public class AppTestPerson
     };
 }
 
-public class AppTestSystem 
+public class AppTestSystem
 {
     [JsonPropertyName("id")]
     public string Id { get; set; } = default!;
