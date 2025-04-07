@@ -71,15 +71,15 @@ public class AppTestDataModel
                 });
         var roles = Persons.ToDictionary(p => p.UserId.ToString(), p => p.PartyRoles.ToDictionary(r => r.Key.ToString(), r => r.Value));
 
-        var systems = Systems.ToDictionary(s => s.Id, s => new TestDataSystem(
+        var systems = Systems?.ToDictionary(s => s.Id, s => new TestDataSystem(
             s.Id,
             s.Name,
-            s.SystemUsers.ToDictionary(su => su.Id, su => new TestDataSystemUser(
+            s.SystemUsers?.ToDictionary(su => su.Id, su => new TestDataSystemUser(
                 su.Id,
                 s.Id,
                 su.OrgNumber,
                 su.Actions
-            ))
+            )) ?? new()
         ));
 
         return new TestDataAuthorization
@@ -87,15 +87,15 @@ public class AppTestDataModel
             Claims = claims,
             PartyList = partyList,
             Roles = roles,
-            Systems = systems,
-            SystemUsers = Systems
+            Systems = systems ?? new(),
+            SystemUsers = Systems?
                 .SelectMany(s => s.SystemUsers.Select(su => (SystemId: s.Id, SystemUser: su)))
                 .ToDictionary(d => d.SystemUser.Id, d => new TestDataSystemUser(
                     d.SystemUser.Id,
                     d.SystemId,
                     d.SystemUser.OrgNumber,
                     d.SystemUser.Actions
-                ))
+                )) ?? new()
         };
     }
 
