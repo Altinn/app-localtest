@@ -181,6 +181,15 @@ Sometimes the local environment have another service running on port 80, so you 
 ALTINN3LOCAL_PORT=80
 ```
 
+> [!NOTE]
+> If you change the port, you must also update the `HostName` in `appsettings.json` in your form application for PDF generation to work correctly. For example:
+> 
+> ```json
+>"GeneralSettings": {
+>  "HostName": "local.altinn.cloud:<PORTNUMBER>",  
+> }
+> ```
+
 If you want to see the storage files on disk (instead of reading them through the browser), change this to a local
 path on your computer (ensure that it exists)
 
