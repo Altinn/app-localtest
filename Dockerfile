@@ -7,7 +7,7 @@ RUN dotnet restore LocalTest.csproj
 COPY ./src .
 RUN dotnet publish LocalTest.csproj -c Release -o /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:0389d5b7d60f75ebbeec3bfffd2ad0a06d234e7b998231a5a86abf5e919a7d01 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:3fce6771d84422e2396c77267865df61174a3e503c049f1fe242224c012fde65 AS final
 EXPOSE 5101
 WORKDIR /app
 COPY --from=build /app_output .
