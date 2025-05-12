@@ -262,7 +262,7 @@ namespace LocalTest.Controllers
                 var systemUser = testData.Authorization.SystemUsers[systemUserId];
                 systemId = systemUser.SystemId;
                 var system = testData.Authorization.Systems[systemId];
-                systemUserOrgNumber = systemUser.PartyOrgNo;
+                systemUserOrgNumber = systemUser.OrgNumber;
                 supplierOrgNumber = system.Id.Split('_')[0];
             }
             string token = await _authenticationService.GenerateTokenForSystemUser(
@@ -343,10 +343,10 @@ namespace LocalTest.Controllers
             var orgs = data.Register.Org;
             foreach (var systemUser in data.Authorization.SystemUsers.Values)
             {
-                var org = orgs[systemUser.PartyOrgNo];
+                var org = orgs[systemUser.OrgNumber];
                 testUsers.Add(new()
                 {
-                    Text = $"{systemUser.PartyOrgNo} - {org.Name}",
+                    Text = $"{systemUser.OrgNumber} - {org.Name}",
                     Value = systemUser.Id,
                 });
             }
