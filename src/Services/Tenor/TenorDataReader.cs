@@ -44,13 +44,14 @@ public class TenorDataRepository
             try
             {
                 var fileData = JsonSerializer.Deserialize<Freg>(fileBytes, _options);
-                if (fileData is not null)
+                if (fileData is null || fileData.Identifikasjonsnummer is null)
                 {
-                    freg.Add(fileData);
-                    continue;
+                    throw new Exception($"Freg file {file.Name} is missing Identifikasjonsnummer");
                 }
+                freg.Add(fileData);
+                continue;
             }
-            catch (JsonException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"File content not in Freg format: {file.Name}, {ex.Message}");
             }
@@ -58,13 +59,17 @@ public class TenorDataRepository
             try
             {
                 var brregFileData = JsonSerializer.Deserialize<BrregErFr>(fileBytes, _options);
-                if (brregFileData is not null)
+                if (brregFileData is null || brregFileData.Organisasjonsnummer is null)
                 {
-                    brregErFr.Add(brregFileData);
-                    continue;
+                    throw new Exception(
+                        $"BrregErFr file {file.Name} is missing Organisasjonsnummer"
+                    );
                 }
+
+                brregErFr.Add(brregFileData);
+                continue;
             }
-            catch (JsonException ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(
                     $"File content not in BrregErFr format: {file.Name}, {ex.Message}"
