@@ -38,19 +38,38 @@ public class TenorDataRepository
         var brregErFr = new List<BrregErFr>();
         var tenorFolder = GetTenorStorageDirectory();
 
-        foreach (var fregFile in tenorFolder.GetFiles("freg.*.kildedata.json").Where(f => files?.Contains(f.Name) ?? true))
+        foreach (var file in tenorFolder.GetFiles().Where(f => files?.Contains(f.Name) ?? true))
         {
-            var fileBytes = await File.ReadAllBytesAsync(fregFile.FullName);
-            var fileData = JsonSerializer.Deserialize<Freg>(fileBytes, _options);
-            if (fileData is not null)
-                freg.Add(fileData);
-        }
-        foreach (var brregFile in tenorFolder.GetFiles("brreg-er-fr.*.kildedata.json").Where(f => files?.Contains(f.Name) ?? true))
-        {
-            var fileBytes = await File.ReadAllBytesAsync(brregFile.FullName);
-            var fileData = JsonSerializer.Deserialize<BrregErFr>(fileBytes, _options);
-            if (fileData is not null)
-                brregErFr.Add(fileData);
+            var fileBytes = await File.ReadAllBytesAsync(file.FullName);
+            try
+            {
+                var fileData = JsonSerializer.Deserialize<Freg>(fileBytes, _options);
+                if (fileData is not null)
+                {
+                    freg.Add(fileData);
+                    continue;
+                }
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"File content not in Freg format: {file.Name}, {ex.Message}");
+            }
+
+            try
+            {
+                var brregFileData = JsonSerializer.Deserialize<BrregErFr>(fileBytes, _options);
+                if (brregFileData is not null)
+                {
+                    brregErFr.Add(brregFileData);
+                    continue;
+                }
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine(
+                    $"File content not in BrregErFr format: {file.Name}, {ex.Message}"
+                );
+            }
         }
 
         return (brregErFr, freg);
