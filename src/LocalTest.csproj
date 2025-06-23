@@ -7,6 +7,9 @@
 
     <!-- Allow copied code to use #if LOCALTEST to maintain changes for localtest from core services -->
     <DefineConstants>$(DefineConstants);LOCALTEST</DefineConstants>
+    
+    <!-- Enable file scan pending testing by uncommenting the line below -->
+     <DefineConstants>$(DefineConstants);LOCALTEST_FILESCAN_PENDING</DefineConstants> 
   </PropertyGroup>
 
   <ItemGroup>

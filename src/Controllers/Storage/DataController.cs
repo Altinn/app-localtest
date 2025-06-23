@@ -276,7 +276,7 @@ namespace Altinn.Platform.Storage.Controllers
             DataElement newData = streamAndDataElement.DataElement;
 
 #if LOCALTEST
-            newData.FileScanResult = dataTypeDefinition.EnableFileScan ? FileScanResult.Clean : FileScanResult.NotApplicable;
+            newData.FileScanResult = dataTypeDefinition.EnableFileScan ? FileScanResult.Infected : FileScanResult.NotApplicable;
 #else
             newData.FileScanResult = dataTypeDefinition.EnableFileScan ? FileScanResult.Pending : FileScanResult.NotApplicable;
 #endif
@@ -302,6 +302,13 @@ namespace Altinn.Platform.Storage.Controllers
 
             DataElement dataElement = await _dataRepository.Create(newData);
             dataElement.SetPlatformSelfLinks(_storageBaseAndHost, instanceOwnerPartyId);
+
+#if LOCALTEST && LOCALTEST_FILESCAN_PENDING
+            if (dataTypeDefinition.EnableFileScan)
+            {
+                dataElement.FileScanResult = FileScanResult.Pending;
+            }
+#endif
 
             await _dataService.StartFileScan(instance, dataTypeDefinition, dataElement, blobTimestamp, CancellationToken.None);
 
@@ -422,6 +429,13 @@ namespace Altinn.Platform.Storage.Controllers
                 DataElement updatedElement = await _dataRepository.Update(instanceGuid, dataGuid, updatedProperties);
 
                 updatedElement.SetPlatformSelfLinks(_storageBaseAndHost, instanceOwnerPartyId);
+
+#if LOCALTEST && LOCALTEST_FILESCAN_PENDING
+                if (dataTypeDefinition.EnableFileScan)
+                {
+                    updatedElement.FileScanResult = FileScanResult.Pending;
+                }
+#endif
 
                 await _dataService.StartFileScan(instance, dataTypeDefinition, dataElement, blobTimestamp, CancellationToken.None);
 
