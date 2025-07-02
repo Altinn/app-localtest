@@ -15,6 +15,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
 using System.Web;
+using Altinn.Platform.Storage.Authorization;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -34,6 +35,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IDataService _dataService;
         private readonly IInstanceEventService _instanceEventService;
+        private readonly IAuthorization _authorizationService;
         private readonly string _storageBaseAndHost;
 
         /// <summary>
@@ -44,6 +46,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="applicationRepository">the application repository</param>
         /// <param name="dataService">A data service with data element related business logic.</param>
         /// <param name="instanceEventService">An instance event service with event related business logic.</param>
+        /// <param name="authorizationService">the authorization service</param>
         /// <param name="generalSettings">the general settings.</param>
         public DataController(
             IDataRepository dataRepository,
@@ -51,6 +54,7 @@ namespace Altinn.Platform.Storage.Controllers
             IApplicationRepository applicationRepository,
             IDataService dataService,
             IInstanceEventService instanceEventService,
+            IAuthorization authorizationService,
             IOptions<GeneralSettings> generalSettings)
         {
             _dataRepository = dataRepository;
@@ -58,6 +62,7 @@ namespace Altinn.Platform.Storage.Controllers
             _applicationRepository = applicationRepository;
             _dataService = dataService;
             _instanceEventService = instanceEventService;
+            _authorizationService = authorizationService;
             _storageBaseAndHost = $"{generalSettings.Value.Hostname}/storage/api/v1/";
         }
 
@@ -163,6 +168,24 @@ namespace Altinn.Platform.Storage.Controllers
             if (dataElement.DeleteStatus?.IsHardDeleted == true && !appOwnerRequestingElement)
             {
                 return NotFound();
+            }
+            
+            (Application appInfo, ActionResult applicationError) = await GetApplicationAsync(instance.AppId, instance.Org);
+            if (appInfo == null)
+            {
+                return applicationError;
+            }
+
+            DataType dataTypeDefinition = appInfo.DataTypes.FirstOrDefault(e => e.Id == dataElement.DataType);
+
+            if (dataTypeDefinition is null)
+            {
+                return BadRequest("Requested element type is not declared in application metadata");
+            }
+            
+            if (!await _authorizationService.AuthorizeInstanceAction(instance, dataTypeDefinition.ActionRequiredToRead, instance.Process.CurrentTask.ElementId))
+            {
+                return Forbid();
             }
 
             if (!dataElement.IsRead && !appOwnerRequestingElement)
