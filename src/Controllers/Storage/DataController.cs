@@ -183,7 +183,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Requested element type is not declared in application metadata");
             }
             
-            if (!await _authorizationService.AuthorizeInstanceAction(instance, dataTypeDefinition.ActionRequiredToRead, instance.Process.CurrentTask.ElementId))
+            if (!string.IsNullOrWhiteSpace(dataTypeDefinition.ActionRequiredToRead) && !await _authorizationService.AuthorizeInstanceAction(instance, dataTypeDefinition.ActionRequiredToRead, instance.Process.CurrentTask.ElementId))
             {
                 return Forbid();
             }
