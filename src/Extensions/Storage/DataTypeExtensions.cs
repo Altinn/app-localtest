@@ -5,12 +5,6 @@ namespace Altinn.Platform.Storage.Extensions;
 
 public static class DataTypeExtensions
 {
-    public static bool HasRequiredReadAction(this DataType dataType) =>
-        !string.IsNullOrWhiteSpace(dataType.ActionRequiredToRead);
-
-    public static bool HasRequiredWriteAction(this DataType dataType) =>
-        !string.IsNullOrWhiteSpace(dataType.ActionRequiredToWrite);
-
     public static async Task<bool> CanRead(
         this DataType dataType,
         IAuthorization authorizationService,
@@ -18,7 +12,7 @@ public static class DataTypeExtensions
         string task = null
     )
     {
-        if (dataType.HasRequiredReadAction() is false)
+        if (string.IsNullOrWhiteSpace(dataType.ActionRequiredToRead))
         {
             return true;
         }
@@ -29,7 +23,7 @@ public static class DataTypeExtensions
             task ?? instance.Process?.CurrentTask?.ElementId
         );
     }
-    
+
     public static async Task<bool> CanWrite(
         this DataType dataType,
         IAuthorization authorizationService,
@@ -37,7 +31,7 @@ public static class DataTypeExtensions
         string task = null
     )
     {
-        if (dataType.HasRequiredWriteAction() is false)
+        if (string.IsNullOrWhiteSpace(dataType.ActionRequiredToWrite))
         {
             return true;
         }
