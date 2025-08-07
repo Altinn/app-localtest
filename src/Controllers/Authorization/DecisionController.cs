@@ -207,16 +207,16 @@ namespace Altinn.Platform.Authorization.Controllers
             // TESTING MODE: Uncomment the lines below to enable "Always Permit" testing
             // ============================================================================
             
-            var testingResponse = await AuthorizeWithForcedPermitXml(request);
-            _logger.LogInformation("Decision: Permit (TESTING MODE - Always Permit)");
-            return CreateResponse(testingResponse);
+            // var testingResponse = await AuthorizeWithForcedPermitXml(request);
+            // _logger.LogInformation("Decision: Permit (TESTING MODE - Always Permit)");
+            // return CreateResponse(testingResponse);
 
             // ============================================================================
             // PRODUCTION MODE: Uncomment the lines below for normal authorization
             // ============================================================================
             
-            // XacmlContextResponse xacmlContextResponse = await Authorize(request);
-            // return CreateResponse(xacmlContextResponse);
+            XacmlContextResponse xacmlContextResponse = await Authorize(request);
+            return CreateResponse(xacmlContextResponse);
         }
 
         private async Task<ActionResult> AuthorizeJsonRequest(XacmlRequestApiModel model)
@@ -230,17 +230,17 @@ namespace Altinn.Platform.Authorization.Controllers
             // without requiring actual authentication/authorization setup.
             // ============================================================================
             
-            XacmlJsonResponse jsonResponse = await AuthorizeWithForcedPermit(jsonRequest.Request);
-            _logger.LogInformation("Decision: Permit (TESTING MODE - Always Permit)");
-            return Ok(jsonResponse);
+            // XacmlJsonResponse jsonResponse = await AuthorizeWithForcedPermit(jsonRequest.Request);
+            // _logger.LogInformation("Decision: Permit (TESTING MODE - Always Permit)");
+            // return Ok(jsonResponse);
             
             // ============================================================================
             // PRODUCTION MODE: Uncomment the lines below for normal authorization
             // ============================================================================
             
-            // XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);
-            // _logger.LogInformation($"Decision: {jsonResponse.Response[0].Decision}");
-            // return Ok(jsonResponse);
+            XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);
+            _logger.LogInformation($"Decision: {jsonResponse.Response[0].Decision}");
+            return Ok(jsonResponse);
         }
 
         private ActionResult CreateResponse(XacmlContextResponse xacmlContextResponse)
