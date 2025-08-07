@@ -63,5 +63,13 @@
   {
     "Type": "altinn",
     "value": "A0282"
+  },
+  {
+    "Type": "altinn",
+    "value": "oed"
+  },
+  {
+    "Type": "altinn",
+    "value": "oed:proxy"
   }
 ]

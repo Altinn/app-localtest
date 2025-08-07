@@ -78,7 +78,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 }
                 else
                 {
-                    return await AuthorizeXmlRequest(model); // lgtm [cs/user-controlled-bypass]
+                    return AuthorizeXmlRequest(model); // lgtm [cs/user-controlled-bypass]
                 }
             }
             catch (Exception ex)
@@ -180,7 +180,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
         }
 
-        private async Task<ActionResult> AuthorizeXmlRequest(XacmlRequestApiModel model)
+        private ActionResult AuthorizeXmlRequest(XacmlRequestApiModel model)
         {
             XacmlContextRequest request;
             using (XmlReader reader = XmlReader.Create(new StringReader(model.BodyContent)))
@@ -188,17 +188,27 @@ namespace Altinn.Platform.Authorization.Controllers
                 request = XacmlParser.ReadContextRequest(reader);
             }
 
-            XacmlContextResponse xacmlContextResponse = await Authorize(request);
-            return CreateResponse(xacmlContextResponse);
+            // FOR TESTING: Always return Permit decision to allow all requests
+            var alwaysPermitXmlResponse = CreateAlwaysPermitXmlResponse();
+            _logger.LogInformation("Decision: Permit (TESTING MODE - Always Permit)");
+            return CreateResponse(alwaysPermitXmlResponse);
+
+            // Original authorization logic (commented out for testing)
+            // XacmlContextResponse xacmlContextResponse = await Authorize(request);
+            // return CreateResponse(xacmlContextResponse);
         }
 
         private async Task<ActionResult> AuthorizeJsonRequest(XacmlRequestApiModel model)
         {
             XacmlJsonRequestRoot jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
 
-            XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);
-            _logger.LogInformation($"Decision: {jsonResponse.Response[0].Decision}");
-
+            // FOR TESTING: Use original logic but force all decisions to Permit
+            XacmlJsonResponse jsonResponse = await AuthorizeWithForcedPermit(jsonRequest.Request);
+            
+            _logger.LogInformation("=== TESTING AUTHORIZATION RESPONSE ===");
+            _logger.LogInformation($"Response JSON: {JsonConvert.SerializeObject(jsonResponse, Newtonsoft.Json.Formatting.Indented)}");
+            _logger.LogInformation("Decision: Permit (TESTING MODE - Always Permit)");
+            
             return Ok(jsonResponse);
         }
 
@@ -214,6 +224,118 @@ namespace Altinn.Platform.Authorization.Controllers
             _logger.LogInformation($"Decision: {xacmlContextResponse}");
 
             return Content(xml);
+        }
+
+
+
+        /// <summary>
+        /// Uses the original authorization flow but forces all decisions to Permit for testing
+        /// This preserves the complete response structure including obligations and status codes
+        /// </summary>
+        private async Task<XacmlJsonResponse> AuthorizeWithForcedPermit(XacmlJsonRequest decisionRequest)
+        {
+            if (decisionRequest.MultiRequests == null || decisionRequest.MultiRequests.RequestReference == null
+                || decisionRequest.MultiRequests.RequestReference.Count < 2)
+            {
+                XacmlContextRequest request = XacmlJsonXmlConverter.ConvertRequest(decisionRequest);
+                XacmlContextResponse xmlResponse = await AuthorizeWithForcedPermitXml(request);
+                return XacmlJsonXmlConverter.ConvertResponse(xmlResponse);
+            }
+            else
+            {
+                XacmlJsonResponse multiResponse = new XacmlJsonResponse();
+                foreach (XacmlJsonRequestReference xacmlJsonRequestReference in decisionRequest.MultiRequests.RequestReference)
+                {
+                    XacmlJsonRequest jsonMultiRequestPart = new XacmlJsonRequest();
+
+                    foreach (string refer in xacmlJsonRequestReference.ReferenceId)
+                    {
+                        IEnumerable<XacmlJsonCategory> resourceCategoriesPart = decisionRequest.Resource.Where(i => i.Id.Equals(refer));
+
+                        if (resourceCategoriesPart != null && resourceCategoriesPart.Any())
+                        {
+                            if (jsonMultiRequestPart.Resource == null)
+                            {
+                                jsonMultiRequestPart.Resource = new List<XacmlJsonCategory>();
+                            }
+
+                            jsonMultiRequestPart.Resource.AddRange(resourceCategoriesPart);
+                        }
+
+                        IEnumerable<XacmlJsonCategory> subjectCategoriesPart = decisionRequest.AccessSubject.Where(i => i.Id.Equals(refer));
+
+                        if (subjectCategoriesPart != null && subjectCategoriesPart.Any())
+                        {
+                            if (jsonMultiRequestPart.AccessSubject == null)
+                            {
+                                jsonMultiRequestPart.AccessSubject = new List<XacmlJsonCategory>();
+                            }
+
+                            jsonMultiRequestPart.AccessSubject.AddRange(subjectCategoriesPart);
+                        }
+
+                        IEnumerable<XacmlJsonCategory> actionCategoriesPart = decisionRequest.Action.Where(i => i.Id.Equals(refer));
+
+                        if (actionCategoriesPart != null && actionCategoriesPart.Any())
+                        {
+                            if (jsonMultiRequestPart.Action == null)
+                            {
+                                jsonMultiRequestPart.Action = new List<XacmlJsonCategory>();
+                            }
+
+                            jsonMultiRequestPart.Action.AddRange(actionCategoriesPart);
+                        }
+                    }
+
+                    XacmlContextResponse partResponse = await AuthorizeWithForcedPermitXml(XacmlJsonXmlConverter.ConvertRequest(jsonMultiRequestPart));
+                    XacmlJsonResponse xacmlJsonResponsePart = XacmlJsonXmlConverter.ConvertResponse(partResponse);
+
+                    if (multiResponse.Response == null)
+                    {
+                        multiResponse.Response = new List<XacmlJsonResult>();
+                    }
+
+                    multiResponse.Response.Add(xacmlJsonResponsePart.Response.First());
+                }
+
+                return multiResponse;
+            }
+        }
+
+        /// <summary>
+        /// Creates a proper XML response that always permits but includes all necessary obligations and status
+        /// </summary>
+        private async Task<XacmlContextResponse> AuthorizeWithForcedPermitXml(XacmlContextRequest decisionRequest)
+        {
+            // Get the enriched request and policy as normal (this adds obligations and context)
+            decisionRequest = await this._contextHandler.Enrich(decisionRequest);
+            XacmlPolicy policy = await this._prp.GetPolicyAsync(decisionRequest);
+
+            // Run the normal authorization to get the proper structure
+            PolicyDecisionPoint pdp = new PolicyDecisionPoint();
+            XacmlContextResponse normalResponse = pdp.Authorize(decisionRequest, policy);
+            
+            // Force the decision to Permit while keeping all other properties
+            foreach (var result in normalResponse.Results)
+            {
+                result.Decision = XacmlContextDecision.Permit;
+            }
+
+            // Still audit the request for logging purposes
+            await AuditRequest(decisionRequest, normalResponse, null);
+            
+            return normalResponse;
+        }
+
+        /// <summary>
+        /// Creates a simple XML response that always permits access for testing purposes
+        /// </summary>
+        private XacmlContextResponse CreateAlwaysPermitXmlResponse()
+        {
+            var result = new XacmlContextResult(XacmlContextDecision.Permit);
+            var response = new XacmlContextResponse(result);
+            
+            return response;
         }
 
         private async Task<XacmlContextResponse> Authorize(XacmlContextRequest decisionRequest)

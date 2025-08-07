@@ -10,6 +10,14 @@
   {
     "Type": "altinn",
     "value": "priv"
+  },
+  {
+    "Type": "altinn",
+    "value": "oed"
+  },
+  {
+    "Type": "altinn",
+    "value": "oed:proxy"
   }
 ]
 
