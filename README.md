@@ -289,6 +289,40 @@ docker run --rm -i --net=host grafana/k6:master-with-browser run - <k6/loadtest.
 
 For a decent editing experience, run `npm install` and use a editor with JS support.
 
+## Testing Features
+
+### Authorization Testing Mode
+
+The LocalTest authorization system includes a special "Testing Mode" that allows you to bypass real authorization checks while maintaining full response compatibility with backend systems. This is particularly useful for:
+
+- Testing with different user IDs without complex authentication setup
+- Frontend development and testing scenarios  
+- Ensuring backend compatibility while bypassing authorization checks
+
+#### How to Enable Testing Mode
+
+1. Open `src/Controllers/Authorization/DecisionController.cs`
+2. In the `AuthorizeJsonRequest` method:
+   - Comment out the "PRODUCTION MODE" lines
+   - Uncomment the "TESTING MODE" lines
+3. In the `AuthorizeXmlRequest` method:
+   - Comment out the "PRODUCTION MODE" lines  
+   - Uncomment the "TESTING MODE" lines
+4. Rebuild and restart the application
+
+#### What Testing Mode Does
+
+- **Always returns Permit decisions** for all authorization requests
+- **Preserves complete response structure** including obligations, status codes, and multi-decision support
+- **Maintains backend compatibility** - your backend services receive properly formatted responses
+- **Enables user switching** - you can change user IDs in your browser without authentication
+
+#### Important Notes
+
+- **For testing only** - Remember to revert to production mode before deploying
+- **Full structure preservation** - The response includes all properties backend systems expect
+- **Multi-decision support** - Complex authorization requests are handled properly
+
 ### Known issues
 
 #### Localtest reports that the app is not running even though it is

@@ -24,8 +24,23 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Authorization.Controllers
 {
     /// <summary>
-    /// This is the controller responsible for Policy Enformcent Point endpoint.
-    /// It returns a Xacml Context Reponse based on a Context Request
+    /// This is the controller responsible for Policy Enforcement Point endpoint.
+    /// It returns a Xacml Context Response based on a Context Request
+    /// 
+    /// TESTING FEATURE AVAILABLE:
+    /// This controller includes a "Testing Mode" that can be enabled to always return Permit decisions
+    /// while maintaining full response structure compatibility. This is useful for:
+    /// - Testing with different user IDs without authentication setup
+    /// - Frontend development and testing scenarios
+    /// - Ensuring backend compatibility while bypassing authorization checks
+    /// 
+    /// To enable testing mode:
+    /// 1. In AuthorizeJsonRequest method: Comment out production lines, uncomment testing lines
+    /// 2. In AuthorizeXmlRequest method: Comment out production lines, uncomment testing lines
+    /// 
+    /// The testing mode uses AuthorizeWithForcedPermit methods which run the complete
+    /// authorization flow but force all final decisions to Permit, preserving obligations,
+    /// status codes, and multi-decision support for full backend compatibility.
     /// </summary>
     [Route("authorization/api/v1/[controller]")]
     [ApiController]
@@ -78,7 +93,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 }
                 else
                 {
-                    return AuthorizeXmlRequest(model); // lgtm [cs/user-controlled-bypass]
+                    return await AuthorizeXmlRequest(model); // lgtm [cs/user-controlled-bypass]
                 }
             }
             catch (Exception ex)
@@ -180,7 +195,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
         }
 
-        private ActionResult AuthorizeXmlRequest(XacmlRequestApiModel model)
+        private async Task<ActionResult> AuthorizeXmlRequest(XacmlRequestApiModel model)
         {
             XacmlContextRequest request;
             using (XmlReader reader = XmlReader.Create(new StringReader(model.BodyContent)))
@@ -188,12 +203,18 @@ namespace Altinn.Platform.Authorization.Controllers
                 request = XacmlParser.ReadContextRequest(reader);
             }
 
-            // FOR TESTING: Always return Permit decision to allow all requests
-            var alwaysPermitXmlResponse = CreateAlwaysPermitXmlResponse();
+            // ============================================================================
+            // TESTING MODE: Uncomment the lines below to enable "Always Permit" testing
+            // ============================================================================
+            
+            var testingResponse = await AuthorizeWithForcedPermitXml(request);
             _logger.LogInformation("Decision: Permit (TESTING MODE - Always Permit)");
-            return CreateResponse(alwaysPermitXmlResponse);
+            return CreateResponse(testingResponse);
 
-            // Original authorization logic (commented out for testing)
+            // ============================================================================
+            // PRODUCTION MODE: Uncomment the lines below for normal authorization
+            // ============================================================================
+            
             // XacmlContextResponse xacmlContextResponse = await Authorize(request);
             // return CreateResponse(xacmlContextResponse);
         }
@@ -202,14 +223,24 @@ namespace Altinn.Platform.Authorization.Controllers
         {
             XacmlJsonRequestRoot jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
 
-            // FOR TESTING: Use original logic but force all decisions to Permit
+            // ============================================================================
+            // TESTING MODE: Uncomment the lines below to enable "Always Permit" testing
+            // This forces all authorization decisions to Permit while maintaining full
+            // response structure compatibility. Useful for testing different user IDs
+            // without requiring actual authentication/authorization setup.
+            // ============================================================================
+            
             XacmlJsonResponse jsonResponse = await AuthorizeWithForcedPermit(jsonRequest.Request);
-            
-            _logger.LogInformation("=== TESTING AUTHORIZATION RESPONSE ===");
-            _logger.LogInformation($"Response JSON: {JsonConvert.SerializeObject(jsonResponse, Newtonsoft.Json.Formatting.Indented)}");
             _logger.LogInformation("Decision: Permit (TESTING MODE - Always Permit)");
-            
             return Ok(jsonResponse);
+            
+            // ============================================================================
+            // PRODUCTION MODE: Uncomment the lines below for normal authorization
+            // ============================================================================
+            
+            // XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);
+            // _logger.LogInformation($"Decision: {jsonResponse.Response[0].Decision}");
+            // return Ok(jsonResponse);
         }
 
         private ActionResult CreateResponse(XacmlContextResponse xacmlContextResponse)
