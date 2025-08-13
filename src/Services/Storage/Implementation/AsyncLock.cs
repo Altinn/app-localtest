@@ -14,13 +14,13 @@ internal sealed class PartitionedAsyncLock : IDisposable
 
     public Task<IDisposable> Lock<T>(T partitionKey) where T : struct
     {
-        var @lock = _locks[partitionKey.GetHashCode() % _locks.Length];
+        var @lock = _locks[Math.Abs(partitionKey.GetHashCode()) % _locks.Length];
         return @lock.Lock();
     }
 
     public Task<IDisposable> Lock(string partitionKey)
     {
-        var @lock = _locks[partitionKey.GetHashCode() % _locks.Length];
+        var @lock = _locks[Math.Abs(partitionKey.GetHashCode()) % _locks.Length];
         return @lock.Lock();
     }
 
