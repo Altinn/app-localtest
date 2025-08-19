@@ -88,7 +88,8 @@ public class TestAuthenticationService
             { AltinnCoreClaimTypes.AuthenticationLevel, authLevel.ToString() },
             { "jti", Guid.NewGuid().ToString() },
             { "scope", scope ?? DefaultUserScope },
-            { "iss", iss }
+            { "iss", iss },
+            { "islocaltest", "true" }
         };
 
         return payload;
@@ -140,7 +141,8 @@ public class TestAuthenticationService
             { AltinnCoreClaimTypes.AuthenticationLevel, "0" },
             { "jti", Guid.NewGuid().ToString() },
             { "scope", scope ?? DefaultUserScope },
-            { "iss", iss }
+            { "iss", iss },
+            { "islocaltest", "true" }
         };
 
         return payload;
@@ -169,7 +171,8 @@ public class TestAuthenticationService
             { AltinnCoreClaimTypes.OrgNumber, orgNumber },
             { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
             { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
-            { "jti", Guid.NewGuid().ToString() }
+            { "jti", Guid.NewGuid().ToString() },
+            { "islocaltest", "true" }
         };
 
         return payload;
@@ -228,7 +231,8 @@ public class TestAuthenticationService
             { AltinnCoreClaimTypes.OrgNumber, orgNumber },
             { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
             { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
-            { "jti", Guid.NewGuid().ToString() }
+            { "jti", Guid.NewGuid().ToString() },
+            { "islocaltest", "true" }
         };
 
         return payload;
@@ -295,6 +299,7 @@ public class TestAuthenticationService
             { AltinnCoreClaimTypes.OrgNumber, supplierOrgNumber },
             { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
             { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
+            { "islocaltest", "true" }
         };
 
         AuthorizationDetailsClaim authorizationDetails = new SystemUserAuthorizationDetailsClaim(
