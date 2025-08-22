@@ -20,6 +20,7 @@ public class TestAuthenticationService
         "altinn:serviceowner/instances.read altinn:serviceowner/instances.write";
     public const string DefaultOrgScope = "altinn:instances.read altinn:instances.write";
     public const string DefaultUserScope = "altinn:portal/enduser";
+    public const string DefaultIssuer = "https://platform.tt02.altinn.no/authentication/api/v1/openid/";
 
     public TestAuthenticationService(IAuthentication authenticationService, TestDataService testDataService)
     {
@@ -77,10 +78,11 @@ public class TestAuthenticationService
         string? scope = null
     )
     {
-        string iss = "https://platform.tt02.altinn.no/authentication/api/v1/openid/";
 
         var payload = new JwtPayload
         {
+            { "iss", DefaultIssuer },
+            { "actual_iss", "localtest" },
             { ClaimTypes.NameIdentifier, $"user-{userId}-{partyId}" },
             { AltinnCoreClaimTypes.UserId, userId.ToString() },
             { AltinnCoreClaimTypes.PartyID, partyId.ToString() },
@@ -88,8 +90,6 @@ public class TestAuthenticationService
             { AltinnCoreClaimTypes.AuthenticationLevel, authLevel.ToString() },
             { "jti", Guid.NewGuid().ToString() },
             { "scope", scope ?? DefaultUserScope },
-            { "iss", iss },
-            { "islocaltest", "true" }
         };
 
         return payload;
@@ -129,10 +129,11 @@ public class TestAuthenticationService
         string? scope = null
     )
     {
-        string iss = "https://platform.tt02.altinn.no/authentication/api/v1/openid/";
 
         var payload = new JwtPayload
         {
+            { "iss", DefaultIssuer },
+            { "actual_iss", "localtest" },
             { ClaimTypes.NameIdentifier, $"user-{userId}-{partyId}" },
             { AltinnCoreClaimTypes.UserId, userId.ToString() },
             { AltinnCoreClaimTypes.UserName, username },
@@ -141,8 +142,6 @@ public class TestAuthenticationService
             { AltinnCoreClaimTypes.AuthenticationLevel, "0" },
             { "jti", Guid.NewGuid().ToString() },
             { "scope", scope ?? DefaultUserScope },
-            { "iss", iss },
-            { "islocaltest", "true" }
         };
 
         return payload;
@@ -150,7 +149,6 @@ public class TestAuthenticationService
 
     public static JwtPayload GetOrgPayload(string orgNumber, string scope)
     {
-        string iss = "https://platform.tt02.altinn.no/authentication/api/v1/openid/";
 
         var scopes = new HashSet<string>(scope.Split(' ', StringSplitOptions.RemoveEmptyEntries));
         if (scopes.Any(s => s.StartsWith("altinn:serviceowner/")))
@@ -163,7 +161,8 @@ public class TestAuthenticationService
 
         var payload = new JwtPayload
         {
-            { "iss", iss },
+            { "iss", DefaultIssuer },
+            { "actual_iss", "localtest" },
             { "scope", scope },
             { "token_type", "Bearer" },
             { "client_id", Guid.NewGuid().ToString() },
@@ -172,7 +171,6 @@ public class TestAuthenticationService
             { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
             { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
             { "jti", Guid.NewGuid().ToString() },
-            { "islocaltest", "true" }
         };
 
         return payload;
@@ -209,7 +207,6 @@ public class TestAuthenticationService
         string org
     )
     {
-        const string iss = "https://platform.tt02.altinn.no/authentication/api/v1/openid/";
 
         var scopes = new HashSet<string>(scope.Split(' ', StringSplitOptions.RemoveEmptyEntries));
         if (!scopes.Any(s => s.StartsWith("altinn:serviceowner/")))
@@ -222,7 +219,8 @@ public class TestAuthenticationService
 
         var payload = new JwtPayload
         {
-            { "iss", iss },
+            { "iss", DefaultIssuer },
+            { "actual_iss", "localtest" },
             { "scope", scope },
             { "token_type", "Bearer" },
             { "client_id", Guid.NewGuid().ToString() },
@@ -232,7 +230,6 @@ public class TestAuthenticationService
             { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
             { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
             { "jti", Guid.NewGuid().ToString() },
-            { "islocaltest", "true" }
         };
 
         return payload;
@@ -283,7 +280,6 @@ public class TestAuthenticationService
         string scope
     )
     {
-        string iss = "https://platform.tt02.altinn.no/authentication/api/v1/openid/";
 
         var scopes = new HashSet<string>(scope.Split(' ', StringSplitOptions.RemoveEmptyEntries));
         if (scopes.Any(s => s.StartsWith("altinn:serviceowner/")))
@@ -291,7 +287,8 @@ public class TestAuthenticationService
 
         var payload = new JwtPayload
         {
-            { "iss", iss },
+            { "iss", DefaultIssuer },
+            { "actual_iss", "localtest" },
             { "token_type", "Bearer" },
             { "scope", scope },
             { "client_id", Guid.NewGuid().ToString() },
@@ -299,7 +296,6 @@ public class TestAuthenticationService
             { AltinnCoreClaimTypes.OrgNumber, supplierOrgNumber },
             { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
             { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
-            { "islocaltest", "true" }
         };
 
         AuthorizationDetailsClaim authorizationDetails = new SystemUserAuthorizationDetailsClaim(
