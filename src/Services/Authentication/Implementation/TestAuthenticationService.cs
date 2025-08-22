@@ -81,13 +81,12 @@ public class TestAuthenticationService
 
         var payload = new JwtPayload
         {
-            { "iss", DefaultIssuer },
             { "actual_iss", "localtest" },
-            { ClaimTypes.NameIdentifier, $"user-{userId}-{partyId}" },
+            { ClaimTypes.NameIdentifier, userId.ToString() },
             { AltinnCoreClaimTypes.UserId, userId.ToString() },
             { AltinnCoreClaimTypes.PartyID, partyId.ToString() },
             { AltinnCoreClaimTypes.AuthenticateMethod, "BankID" },
-            { AltinnCoreClaimTypes.AuthenticationLevel, authLevel.ToString() },
+            { AltinnCoreClaimTypes.AuthenticationLevel, authLevel },
             { "jti", Guid.NewGuid().ToString() },
             { "scope", scope ?? DefaultUserScope },
         };
@@ -132,14 +131,13 @@ public class TestAuthenticationService
 
         var payload = new JwtPayload
         {
-            { "iss", DefaultIssuer },
             { "actual_iss", "localtest" },
-            { ClaimTypes.NameIdentifier, $"user-{userId}-{partyId}" },
+            { ClaimTypes.NameIdentifier, userId.ToString() },
             { AltinnCoreClaimTypes.UserId, userId.ToString() },
             { AltinnCoreClaimTypes.UserName, username },
             { AltinnCoreClaimTypes.PartyID, partyId.ToString() },
-            { AltinnCoreClaimTypes.AuthenticateMethod, "Mock" },
-            { AltinnCoreClaimTypes.AuthenticationLevel, "0" },
+            { AltinnCoreClaimTypes.AuthenticateMethod, "SelfIdentified" },
+            { AltinnCoreClaimTypes.AuthenticationLevel, 0 },
             { "jti", Guid.NewGuid().ToString() },
             { "scope", scope ?? DefaultUserScope },
         };
@@ -169,7 +167,7 @@ public class TestAuthenticationService
             { "consumer", JsonSerializer.SerializeToElement(consumer) },
             { AltinnCoreClaimTypes.OrgNumber, orgNumber },
             { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
-            { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
+            { AltinnCoreClaimTypes.AuthenticationLevel, 3 },
             { "jti", Guid.NewGuid().ToString() },
         };
 
@@ -228,7 +226,7 @@ public class TestAuthenticationService
             { AltinnCoreClaimTypes.Org, org },
             { AltinnCoreClaimTypes.OrgNumber, orgNumber },
             { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
-            { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
+            { AltinnCoreClaimTypes.AuthenticationLevel, 3 },
             { "jti", Guid.NewGuid().ToString() },
         };
 
@@ -295,7 +293,7 @@ public class TestAuthenticationService
             { "jti", Guid.NewGuid().ToString() },
             { AltinnCoreClaimTypes.OrgNumber, supplierOrgNumber },
             { AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten" },
-            { AltinnCoreClaimTypes.AuthenticationLevel, "3" },
+            { AltinnCoreClaimTypes.AuthenticationLevel, 3 },
         };
 
         AuthorizationDetailsClaim authorizationDetails = new SystemUserAuthorizationDetailsClaim(
