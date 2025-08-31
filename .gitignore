@@ -21,3 +21,6 @@ AltinnPlatformLocal/
 node_modules/
 k6/*
 !k6/*.sample.js
+
+target/
+output/
