@@ -240,87 +240,92 @@ func (w *browserWorker) handleRequest(req *workerRequest) {
 }
 
 func (w *browserWorker) generatePdf(req *workerRequest) chromedp.Tasks {
-	tasks := chromedp.Tasks{}
+	return chromedp.Tasks{
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			// Create incognito context for this request
+			incognitoCtx, cancel := chromedp.NewContext(ctx, chromedp.WithNewBrowserContext())
+			defer cancel()
 
-	// Set cookies from request
-	request := req.request
-	for _, cookie := range request.Cookies {
-		tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
-			sameSite := network.CookieSameSiteLax
-			switch cookie.SameSite {
-			case "Strict":
-				sameSite = network.CookieSameSiteStrict
-			case "None":
-				sameSite = network.CookieSameSiteNone
+			// Set up tasks for the incognito context
+			tasks := chromedp.Tasks{}
+
+			// Set cookies from request
+			request := req.request
+			for _, cookie := range request.Cookies {
+				tasks = append(tasks, chromedp.ActionFunc(func(incogCtx context.Context) error {
+					sameSite := network.CookieSameSiteLax
+					switch cookie.SameSite {
+					case "Strict":
+						sameSite = network.CookieSameSiteStrict
+					case "None":
+						sameSite = network.CookieSameSiteNone
+					}
+					return network.SetCookie(cookie.Name, cookie.Value).
+						WithDomain(cookie.Domain).
+						WithPath("/").
+						WithSecure(false).
+						WithHTTPOnly(false).
+						WithSameSite(sameSite).
+						Do(incogCtx)
+				}))
 			}
-			return network.SetCookie(cookie.Name, cookie.Value).
-				WithDomain(cookie.Domain).
-				WithPath("/").
-				WithSecure(false).
-				WithHTTPOnly(false).
-				WithSameSite(sameSite).
-				Do(ctx)
-		}))
+
+			// Navigate to URL
+			tasks = append(tasks, chromedp.Navigate(request.URL))
+
+			// Wait for element if specified
+			waitSelector := request.WaitFor
+			if waitSelector == "" {
+				waitSelector = "#readyForPrint"
+			}
+			tasks = append(tasks, chromedp.WaitReady(waitSelector, chromedp.ByID))
+
+			// Generate PDF with options
+			tasks = append(tasks, chromedp.ActionFunc(func(incogCtx context.Context) error {
+				pdfParams := page.PrintToPDF()
+
+				// Apply options
+				if request.Options.PrintBackground {
+					pdfParams = pdfParams.WithPrintBackground(true)
+				}
+
+				if request.Options.DisplayHeaderFooter {
+					pdfParams = pdfParams.WithDisplayHeaderFooter(true)
+					if request.Options.HeaderTemplate != "" {
+						pdfParams = pdfParams.WithHeaderTemplate(request.Options.HeaderTemplate)
+					}
+					if request.Options.FooterTemplate != "" {
+						pdfParams = pdfParams.WithFooterTemplate(request.Options.FooterTemplate)
+					}
+				}
+
+				// Set margins if specified
+				if request.Options.Margin.Top != "" {
+					pdfParams = pdfParams.WithMarginTop(convertMargin(request.Options.Margin.Top))
+				}
+				if request.Options.Margin.Right != "" {
+					pdfParams = pdfParams.WithMarginRight(convertMargin(request.Options.Margin.Right))
+				}
+				if request.Options.Margin.Bottom != "" {
+					pdfParams = pdfParams.WithMarginBottom(convertMargin(request.Options.Margin.Bottom))
+				}
+				if request.Options.Margin.Left != "" {
+					pdfParams = pdfParams.WithMarginLeft(convertMargin(request.Options.Margin.Left))
+				}
+
+				buf, _, err := pdfParams.Do(incogCtx)
+				if err != nil {
+					return err
+				}
+
+				req.respondOk(buf)
+				return nil
+			}))
+
+			// Run all tasks in the incognito context
+			return chromedp.Run(incognitoCtx, tasks)
+		}),
 	}
-
-	// Navigate to URL
-	tasks = append(tasks, chromedp.Navigate(request.URL))
-
-	// Wait for element if specified
-	waitSelector := request.WaitFor
-	if waitSelector == "" {
-		waitSelector = "#readyForPrint"
-	}
-	tasks = append(tasks, chromedp.WaitReady(waitSelector, chromedp.ByID))
-
-	// Generate PDF with options
-	tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
-		pdfParams := page.PrintToPDF()
-
-		// Apply options
-		if request.Options.PrintBackground {
-			pdfParams = pdfParams.WithPrintBackground(true)
-		}
-
-		if request.Options.DisplayHeaderFooter {
-			pdfParams = pdfParams.WithDisplayHeaderFooter(true)
-			if request.Options.HeaderTemplate != "" {
-				pdfParams = pdfParams.WithHeaderTemplate(request.Options.HeaderTemplate)
-			}
-			if request.Options.FooterTemplate != "" {
-				pdfParams = pdfParams.WithFooterTemplate(request.Options.FooterTemplate)
-			}
-		}
-
-		// Set margins if specified
-		if request.Options.Margin.Top != "" {
-			pdfParams = pdfParams.WithMarginTop(convertMargin(request.Options.Margin.Top))
-		}
-		if request.Options.Margin.Right != "" {
-			pdfParams = pdfParams.WithMarginRight(convertMargin(request.Options.Margin.Right))
-		}
-		if request.Options.Margin.Bottom != "" {
-			pdfParams = pdfParams.WithMarginBottom(convertMargin(request.Options.Margin.Bottom))
-		}
-		if request.Options.Margin.Left != "" {
-			pdfParams = pdfParams.WithMarginLeft(convertMargin(request.Options.Margin.Left))
-		}
-
-		buf, _, err := pdfParams.Do(ctx)
-		if err != nil {
-			return err
-		}
-
-		req.respondOk(buf)
-		return nil
-	}))
-
-	// Clear cookies
-	tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
-		return network.ClearBrowserCookies().Do(ctx)
-	}))
-
-	return tasks
 }
 
 // convertMargin converts margin strings like "0.75in" to float64 inches
