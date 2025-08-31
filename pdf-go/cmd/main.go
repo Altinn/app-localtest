@@ -8,20 +8,14 @@ import (
 	"net/http"
 
 	chromedp "altinn/pdf/internal/chromedp"
-	"altinn/pdf/internal/fetcher"
 	"altinn/pdf/internal/types"
 )
 
 var generator types.PdfGenerator
 
 func main() {
-	outputPath := "./output/"
-	chromePath, err := fetcher.Fetch(outputPath)
-	if err != nil {
-		log.Fatalf("Failed to fetch Chrome: %v", err)
-	}
-
-	generator, err = chromedp.New(chromePath)
+	var err error
+	generator, err = chromedp.New()
 	if err != nil {
 		log.Fatalf("Failed to create PDF generator: %v", err)
 	}

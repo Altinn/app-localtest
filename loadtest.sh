@@ -406,8 +406,8 @@ execute() {
     
     # Measure average startup times with multiple iterations
     echo "Measuring startup times..."
-    local browserless_startup=$(measure_average_startup_time "altinn-pdf-service" "altinn_pdf_service" "http://127.0.0.1:5300/json")
-    local rust_startup=$(measure_average_startup_time "altinn-pdf-rust" "pdf_rust" "http://127.0.0.1:5010/health")
+    # local browserless_startup=$(measure_average_startup_time "altinn-pdf-service" "altinn_pdf_service" "http://127.0.0.1:5300/json")
+    # local rust_startup=$(measure_average_startup_time "altinn-pdf-rust" "pdf_rust" "http://127.0.0.1:5010/health")
     local go_startup=$(measure_average_startup_time "altinn-pdf-go" "pdf_go" "http://127.0.0.1:5011/health")
     
     # Ensure all containers are running after measurements
@@ -416,13 +416,13 @@ execute() {
     
     # Measure memory before any PDF generation
     echo "Measuring baseline memory usage..."
-    local browserless_memory_before=$(measure_container_memory "altinn-pdf-service")
-    local rust_memory_before=$(measure_container_memory "altinn-pdf-rust")
+    # local browserless_memory_before=$(measure_container_memory "altinn-pdf-service")
+    # local rust_memory_before=$(measure_container_memory "altinn-pdf-rust")
     local go_memory_before=$(measure_container_memory "altinn-pdf-go")
     
     # Store memory before values for later use
-    echo "$browserless_memory_before" > "/tmp/memory_before_altinn-pdf-service.txt"
-    echo "$rust_memory_before" > "/tmp/memory_before_altinn-pdf-rust.txt"
+    # echo "$browserless_memory_before" > "/tmp/memory_before_altinn-pdf-service.txt"
+    # echo "$rust_memory_before" > "/tmp/memory_before_altinn-pdf-rust.txt"
     echo "$go_memory_before" > "/tmp/memory_before_altinn-pdf-go.txt"
     
     # Get token (containers are ready due to --wait)
@@ -434,15 +434,15 @@ execute() {
     fi
     
     # Always run curl commands first for PDF inspection
-    generate_pdf_curl "browserless container" "http://127.0.0.1:5300/pdf" "output/test-browserless.pdf" "$url" "$token"
-    generate_pdf_curl "rust PDF service" "http://127.0.0.1:5010/pdf" "output/test-rust.pdf" "$url" "$token"
+    # generate_pdf_curl "browserless container" "http://127.0.0.1:5300/pdf" "output/test-browserless.pdf" "$url" "$token"
+    # generate_pdf_curl "rust PDF service" "http://127.0.0.1:5010/pdf" "output/test-rust.pdf" "$url" "$token"
     generate_pdf_curl "go PDF service" "http://127.0.0.1:5011/pdf" "output/test-go.pdf" "$url" "$token"
 
     echo "PDFs saved to output/test-browserless.pdf, output/test-rust.pdf, and output/test-go.pdf"
     
     # Extract and log headers from all services
-    log_service_headers "Browserless Container" "output/result-browserless.log"
-    log_service_headers "Rust PDF Service" "output/result-rust.log"
+    # log_service_headers "Browserless Container" "output/result-browserless.log"
+    # log_service_headers "Rust PDF Service" "output/result-rust.log"
     log_service_headers "Go PDF Service" "output/result-go.log"
     
     # Collect performance metrics for all services
@@ -450,8 +450,8 @@ execute() {
     echo "======================================"
     echo "Collecting performance metrics..."
     echo "======================================"
-    collect_service_metrics "Browserless Container" "altinn-pdf-service" "http://127.0.0.1:5300/json" "output/result-browserless.log" "$browserless_startup"
-    collect_service_metrics "Rust PDF Service" "altinn-pdf-rust" "http://127.0.0.1:5010/health" "output/result-rust.log" "$rust_startup"
+    # collect_service_metrics "Browserless Container" "altinn-pdf-service" "http://127.0.0.1:5300/json" "output/result-browserless.log" "$browserless_startup"
+    # collect_service_metrics "Rust PDF Service" "altinn-pdf-rust" "http://127.0.0.1:5010/health" "output/result-rust.log" "$rust_startup"
     collect_service_metrics "Go PDF Service" "altinn-pdf-go" "http://127.0.0.1:5011/health" "output/result-go.log" "$go_startup"
     
     # If not in test mode, also run load tests
@@ -461,10 +461,10 @@ execute() {
         echo "Starting load tests..."
         echo "======================================"
         
-        run_load_test "browserless container" "http://127.0.0.1:5300/pdf" "output/result-browserless.log" "$url" "altinn-pdf-service" "$token"
-        echo "--------------------------------------"
-        run_load_test "rust PDF service" "http://127.0.0.1:5010/pdf" "output/result-rust.log" "$url" "altinn-pdf-rust" "$token"
-        echo "--------------------------------------"
+        # run_load_test "browserless container" "http://127.0.0.1:5300/pdf" "output/result-browserless.log" "$url" "altinn-pdf-service" "$token"
+        # echo "--------------------------------------"
+        # run_load_test "rust PDF service" "http://127.0.0.1:5010/pdf" "output/result-rust.log" "$url" "altinn-pdf-rust" "$token"
+        # echo "--------------------------------------"
         run_load_test "go PDF service" "http://127.0.0.1:5011/pdf" "output/result-go.log" "$url" "altinn-pdf-go" "$token"
         
         echo "Load test results saved to output/result-browserless.log, output/result-rust.log, and output/result-go.log"

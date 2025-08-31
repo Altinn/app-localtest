@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
-	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -26,33 +24,25 @@ type ChromeDP struct {
 	browserVersion types.BrowserVersion
 }
 
-func New(chromePath string) (*ChromeDP, error) {
+func New() (*ChromeDP, error) {
 	workerCount := types.MaxConcurrency
 	fmt.Printf("Starting ChromeDP with %d browser workers\n", workerCount)
 
 	generator := &ChromeDP{
-		workers: make([]*browserWorker, 0, workerCount),
+		workers: make([]*browserWorker, workerCount),
 		queue:   make(chan workerRequest, workerCount*2),
 	}
 
 	go func() {
 		fmt.Printf("Initializing ChromeDP\n")
 
-		// Get browser version info using the same Chrome path
-		opts, err := createBrowserOptions(chromePath, path.Join(os.TempDir(), "browser-init"))
-		if err != nil {
-			log.Fatalf("Failed to create browser options: %v", err)
-		}
-
-		allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
-		tempCtx, cancel2 := chromedp.NewContext(allocCtx)
+		initCtx, cancel := chromedp.NewContext(context.Background())
 		defer func() {
-			cancel2()
 			cancel()
 		}()
 
 		var product, revision, protocolVersion, userAgent, jsVersion string
-		err = chromedp.Run(tempCtx, chromedp.ActionFunc(func(ctx context.Context) error {
+		err := chromedp.Run(initCtx, chromedp.ActionFunc(func(ctx context.Context) error {
 			var err error
 			product, protocolVersion, revision, userAgent, jsVersion, err = browser.GetVersion().Do(ctx)
 			return err
@@ -72,18 +62,17 @@ func New(chromePath string) (*ChromeDP, error) {
 		fmt.Printf("Chrome version: %s (revision: %s, protocol: %s)\n", product, revision, protocolVersion)
 
 		for i := 0; i < workerCount; i++ {
-			fmt.Printf("Starting browser worker %d\n", i)
-			worker, err := newBrowserWorker(i, chromePath)
-			if err != nil {
-				log.Fatalf("Failed to create browserworker %d: %v", i, err)
-			}
-
-			generator.workers = append(generator.workers, worker)
 			generator.wg.Add(1)
-
 			go func(i int) {
-				fmt.Printf("Browser worker %d started successfully\n", i)
 				defer generator.wg.Done()
+				fmt.Printf("Starting browser worker %d\n", i)
+				worker, err := newBrowserWorker(i)
+				if err != nil {
+					log.Fatalf("Failed to create browserworker %d: %v", i, err)
+				}
+
+				generator.workers[i] = worker
+				fmt.Printf("Browser worker %d started successfully\n", i)
 				worker.run(generator.queue)
 				fmt.Printf("Browser worker %d terminated\n", i)
 			}(i)
@@ -183,14 +172,8 @@ type browserWorker struct {
 	cancel context.CancelFunc
 }
 
-func newBrowserWorker(id int, chromePath string) (*browserWorker, error) {
-	opts, err := createBrowserOptions(chromePath, path.Join(os.TempDir(), fmt.Sprintf("browser-%d", id)))
-	if err != nil {
-		return nil, err
-	}
-
-	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
-	ctx, cancel2 := chromedp.NewContext(allocCtx, chromedp.WithBrowserOption(chromedp.WithBrowserLogf(func(format string, args ...interface{}) {
+func newBrowserWorker(id int) (*browserWorker, error) {
+	ctx, cancel := chromedp.NewContext(context.Background(), chromedp.WithBrowserOption(chromedp.WithBrowserLogf(func(format string, args ...interface{}) {
 		msg := fmt.Sprintf(format, args...)
 		if strings.Contains(msg, "could not unmarshal event") {
 			// Comes from (breaking) changes in CDP protocol (library is tested against different versions of Chrome)
@@ -200,19 +183,14 @@ func newBrowserWorker(id int, chromePath string) (*browserWorker, error) {
 		fmt.Printf("%s", "[Browser] "+msg+"\n")
 	})))
 
-	combinedCancel := func() {
-		cancel2()
-		cancel()
-	}
-
 	worker := &browserWorker{
 		id:     id,
 		ctx:    ctx,
-		cancel: combinedCancel,
+		cancel: cancel,
 	}
 
 	if err := chromedp.Run(ctx); err != nil {
-		combinedCancel()
+		cancel()
 		return nil, fmt.Errorf("failed to initialize browser worker %d: %v", id, err)
 	}
 
@@ -343,25 +321,6 @@ func (w *browserWorker) generatePdf(req *workerRequest) chromedp.Tasks {
 	}))
 
 	return tasks
-}
-
-func createBrowserOptions(chromePath string, userDataDir string) ([]chromedp.ExecAllocatorOption, error) {
-	if err := os.MkdirAll(userDataDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create user data dir: %v", err)
-	}
-
-	return []chromedp.ExecAllocatorOption{
-		chromedp.ExecPath(chromePath),
-		chromedp.Flag("headless", "new"),
-		chromedp.Flag("hide-scrollbars", true),
-		chromedp.Flag("mute-audio", true),
-		chromedp.UserDataDir(userDataDir),
-		chromedp.NoSandbox,
-		chromedp.Flag("disable-dev-shm-usage", true),
-		chromedp.NoFirstRun,
-		chromedp.Flag("enable-logging", true),
-		chromedp.Flag("v1", "1"),
-	}, nil
 }
 
 // convertMargin converts margin strings like "0.75in" to float64 inches
