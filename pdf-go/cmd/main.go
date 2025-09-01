@@ -48,25 +48,6 @@ func handlePdfGeneration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate supported options
-	if req.Options.Format != "" && req.Options.Format != "A4" {
-		http.Error(w, "Only A4 format is supported", http.StatusBadRequest)
-		return
-	}
-
-	// Ensure we have the authentication cookie
-	var authToken string
-	for _, cookie := range req.Cookies {
-		if cookie.Name == "AltinnStudioRuntime" {
-			authToken = cookie.Value
-			break
-		}
-	}
-	if authToken == "" {
-		http.Error(w, "AltinnStudioRuntime cookie is required", http.StatusBadRequest)
-		return
-	}
-
 	result, err := generator.Generate(context.Background(), req)
 	if err != nil {
 		log.Printf("Error generating PDF: %v", err)

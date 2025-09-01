@@ -5,20 +5,20 @@ import "context"
 const MaxConcurrency = 4
 
 type PdfRequest struct {
-	URL                 string     `json:"url"`
-	Options             PdfOptions `json:"options"`
+	URL                  string     `json:"url"`
+	Options              PdfOptions `json:"options"`
 	SetJavaScriptEnabled bool       `json:"setJavaScriptEnabled"`
-	WaitFor             string     `json:"waitFor"`
-	Cookies             []Cookie   `json:"cookies"`
+	WaitFor              string     `json:"waitFor"`
+	Cookies              []Cookie   `json:"cookies"`
 }
 
 type PdfOptions struct {
-	HeaderTemplate      string     `json:"headerTemplate"`
-	FooterTemplate      string     `json:"footerTemplate"`
-	DisplayHeaderFooter bool       `json:"displayHeaderFooter"`
-	PrintBackground     bool       `json:"printBackground"`
-	Format              string     `json:"format"`
-	Margin              PdfMargin  `json:"margin"`
+	HeaderTemplate      string    `json:"headerTemplate"`
+	FooterTemplate      string    `json:"footerTemplate"`
+	DisplayHeaderFooter bool      `json:"displayHeaderFooter"`
+	PrintBackground     bool      `json:"printBackground"`
+	Format              string    `json:"format"`
+	Margin              PdfMargin `json:"margin"`
 }
 
 type PdfMargin struct {

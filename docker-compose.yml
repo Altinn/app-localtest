@@ -55,10 +55,10 @@ services:
       - MAX_CONCURRENT_SESSIONS=4
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/config || exit 1"]
-      interval: 100ms
-      timeout: 100ms
-      retries: 50
-      start_period: 100ms
+      interval: 1s
+      timeout: 1s
+      retries: 20
+      start_period: 1s
     extra_hosts:
       - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
       - "host.containers.internal:host-gateway"
@@ -182,10 +182,10 @@ services:
       - "5010:5010"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5010/health || exit 1"]
-      interval: 100ms
-      timeout: 100ms
-      retries: 50
-      start_period: 100ms
+      interval: 1s
+      timeout: 1s
+      retries: 20
+      start_period: 1s
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
@@ -206,10 +206,10 @@ services:
       - "5011:5011"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5011/health || exit 1"]
-      interval: 100ms
-      timeout: 100ms
-      retries: 50
-      start_period: 100ms
+      interval: 1s
+      timeout: 1s
+      retries: 20
+      start_period: 1s
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"

@@ -5,11 +5,11 @@
 # * Google Chrome for Testing 117.0.5938.92
 # * PREBOOT_CHROME=true
 # * MAX_CONCURRENT_SESSIONS=4
+# * (queue size = 1, but we don't hit that here so we dont care)
 
 # TODO
 # * https://github.com/spider-rs/spider_chrome/issues/1 - other chrome variants?
 # * PuppeteerSharp
-# * Resource usage
 
 set -Eeuo pipefail
 
