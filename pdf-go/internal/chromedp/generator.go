@@ -3,6 +3,7 @@ package chromedp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -37,13 +38,18 @@ func New() (*ChromeDP, error) {
 		queue:   make(chan workerRequest, workerCount*2),
 	}
 
+	// We only need the queue to be initialized before returning the generator to main
+	// We can initialize the workers asynchronously, and they will start
+	// consuming requests from the queue.
+	// We should be reasonably sure that the workers are quick to start (<1s, otherwise we might get issues)
 	go func() {
 		fmt.Printf("Initializing ChromeDP\n")
 
-		initCtx, cancel := chromedp.NewContext(context.Background())
-		defer func() {
-			cancel()
-		}()
+		opts := createBrowserOptions()
+		allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), opts...)
+		defer allocCancel()
+		initCtx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
+		defer cancel()
 
 		var product, revision, protocolVersion, userAgent, jsVersion string
 		err := chromedp.Run(initCtx, chromedp.ActionFunc(func(ctx context.Context) error {
@@ -65,15 +71,12 @@ func New() (*ChromeDP, error) {
 
 		fmt.Printf("Chrome version: %s (revision: %s, protocol: %s)\n", product, revision, protocolVersion)
 
-		for i := 0; i < workerCount; i++ {
+		for i := range workerCount {
 			generator.wg.Add(1)
 			go func(i int) {
 				defer generator.wg.Done()
 				fmt.Printf("Starting browser worker %d\n", i)
-				worker, err := newBrowserWorker(i)
-				if err != nil {
-					log.Fatalf("Failed to create browserworker %d: %v", i, err)
-				}
+				worker := newBrowserWorker(i)
 
 				generator.workers[i] = worker
 				fmt.Printf("Browser worker %d started successfully\n", i)
@@ -86,20 +89,23 @@ func New() (*ChromeDP, error) {
 	return generator, nil
 }
 
-func (g *ChromeDP) Generate(ctx context.Context, request types.PdfRequest) (*types.PdfResult, error) {
+func (g *ChromeDP) Generate(ctx context.Context, request types.PdfRequest) (*types.PdfResult, *types.PDFError) {
 	responder := make(chan workerResponse, 1)
 	req := workerRequest{
 		request:   request,
 		responder: responder,
 		ctx:       ctx,
+		cleanedUp: false,
 	}
 
 	select {
 	case g.queue <- req:
 		break
+	case <-ctx.Done():
+		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
 	case <-time.After(5 * time.Second):
-		fmt.Printf("Request queue full, rejecting request for URL: %s (buffer: %d/%d)\n", request.URL, len(g.queue), cap(g.queue))
-		return nil, fmt.Errorf("pool is busy, request timeout")
+		fmt.Printf("Request queue full, rejecting request for URL: %s\n", request.URL)
+		return nil, types.NewPDFError(types.ErrQueueFull, "", nil)
 	}
 
 	select {
@@ -111,9 +117,11 @@ func (g *ChromeDP) Generate(ctx context.Context, request types.PdfRequest) (*typ
 			Data:    response.Data,
 			Browser: g.browserVersion,
 		}, nil
+	case <-ctx.Done():
+		return nil, types.NewPDFError(types.ErrClientDropped, "", ctx.Err())
 	case <-time.After(30 * time.Second):
 		fmt.Printf("Client timeout waiting for PDF generation (30s) for URL: %s - abandoning request\n", request.URL)
-		return nil, fmt.Errorf("PDF generation timeout")
+		return nil, types.NewPDFError(types.ErrTimeout, "", nil)
 	}
 }
 
@@ -127,9 +135,10 @@ type workerRequest struct {
 	request   types.PdfRequest
 	responder chan workerResponse
 	ctx       context.Context
+	cleanedUp bool
 }
 
-func (r *workerRequest) respondOk(data []byte) {
+func (r *workerRequest) tryRespondOk(data []byte) {
 	if r.responder != nil {
 		response := workerResponse{
 			Data:  data,
@@ -145,7 +154,7 @@ func (r *workerRequest) respondOk(data []byte) {
 	}
 }
 
-func (r *workerRequest) tryRespondError(err error) {
+func (r *workerRequest) tryRespondError(err *types.PDFError) {
 	if r.responder != nil {
 		response := workerResponse{
 			Data:  nil,
@@ -167,98 +176,156 @@ func (r *workerRequest) hasResponded() bool {
 
 type workerResponse struct {
 	Data  []byte
-	Error error
+	Error *types.PDFError
 }
 
 type browserWorker struct {
-	id            int
-	ctx           context.Context
-	cancel        context.CancelFunc
-	errors        []string
-	readyForPrint chan struct{}
-	currentUrl    string
+	id          int
+	ctx         context.Context
+	cancel      context.CancelFunc
+	allocCtx    context.Context
+	allocCancel context.CancelFunc
+	// errors      []string
+	currentUrl string
 }
 
-const readyForPrintCbName = "altinnStudioAppReadyForPrintCb"
+func newBrowserWorker(id int) *browserWorker {
+	opts := createBrowserOptions()
+	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), opts...)
 
-func newBrowserWorker(id int) (*browserWorker, error) {
-	ctx, cancel := chromedp.NewContext(context.Background(), chromedp.WithBrowserOption(chromedp.WithBrowserLogf(func(format string, args ...interface{}) {
+	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithBrowserOption(chromedp.WithBrowserLogf(func(format string, args ...interface{}) {
 		msg := fmt.Sprintf(format, args...)
-		if strings.Contains(msg, "could not unmarshal event") {
-			// Comes from (breaking) changes in CDP protocol (library is tested against different versions of Chrome)
-			// We are keeping browser version stable for now so just ignore as long as everything works
-			return
-		}
+		// We had some log noise due to differences in CDP protocol versions between the installed browser and the version of chromedp
+		// but this was only back when we used the old version of browserless container and needed common ground for testing
+
+		// if strings.Contains(msg, "could not unmarshal event") {
+		// 	// Comes from (breaking) changes in CDP protocol (library is tested against different versions of Chrome)
+		// 	// We are keeping browser version stable for now so just ignore as long as everything works
+		// 	return
+		// }
 		fmt.Printf("%s", "[Browser] "+msg+"\n")
 	})))
 
 	w := &browserWorker{
-		id:            id,
-		ctx:           ctx,
-		cancel:        cancel,
-		errors:        make([]string, 32),
-		readyForPrint: make(chan struct{}, 1),
-		currentUrl:    "",
+		id:          id,
+		ctx:         ctx,
+		cancel:      cancel,
+		allocCtx:    allocCtx,
+		allocCancel: allocCancel,
+		// errors:      make([]string, 32),
+		currentUrl: "",
 	}
 
-	if err := chromedp.Run(w.ctx, chromedp.Tasks{
-		runtime.AddBinding(readyForPrintCbName),
-	}); err != nil {
+	// Possible improvement:
+	//   Right now we wait for #readyForPrint element to be ready in the DOM
+	//   There are no awesome ways of waiting for this element to show up.
+	//   * Poll querying the DOM
+	//   * requestAnimationFrame (RAF) polling, which is what puppeteer does in some cases
+	//   What we could consider for the future is not using the DOM for communicating this at all
+	//   and rather call into exposed functions through the CDP `Runtime.addBinding` command.
+	//   Using this approach a function would become available on the `windows` object
+	//   which the frontend could call (instead of appending to the DOM), or alternatively
+	//   have the frontend register a `MutationObserver` or some other mechanism to react to the DOM change
+	//   which would be more efficient than communicating over CDP/websocket.
+	//   This was tested but didn't improve perf to a significant degree, so was left out initially (would require app changes)
+	//   See outline of implementation:
+	//
+	//   chromedp.Tasks{
+	//   	runtime.AddBinding("altinnStudioAppReadyForPrintCb"),
+	//   }
+	//
+	//   From JS we can call this function:
+	//
+	//   if (window.hasOwnProperty('altinnStudioAppReadyForPrintCb')) {
+	//   	try {
+	//   		const result = window.altinnStudioAppReadyForPrintCb('ready');
+	//   	} catch (err) {
+	//   		console.error('Error occurred while calling callback:', err);
+	//   	}
+	//   }
+	//
+	//   On the Go side, we would listen for the call:
+	//
+	//   chromedp.ListenTarget(w.ctx, func(ev interface{}) {
+	//   	if ev, ok := ev.(*runtime.EventBindingCalled); ok {
+	//   		fmt.Printf("[%d, %s] received event binding call: %s\n", id, w.currentUrl, ev.Name)
+	//   		if ev.Name == readyForPrintCbName {
+	//   			select {
+	//   			case w.readyForPrint <- struct{}{}:
+	//   				break
+	//   			default:
+	//   				fmt.Printf("[%d, %s] readyForPrint channel full, ignoring\n", w.id, w.currentUrl)
+	//   			}
+	//   		}
+	//   	}
+	//   })
+	//
+	//   The `readyForPrint` here is a one shot channel that is consumed from
+	//   blocking until we run the PDF print command:
+	//
+	//   tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
+	//   	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	//   	defer cancel()
+	//   	select {
+	//   	case <-w.readyForPrint:
+	//   		break
+	//   	case <-ctx.Done():
+	//   		return ctx.Err()
+	//   	}
+	//   	return nil
+	//   }))
+	//
+	//   Now, print is called
+	//
+
+	if err := chromedp.Run(w.ctx); err != nil {
 		cancel()
-		return nil, fmt.Errorf("failed to initialize browser worker %d: %v", id, err)
+		allocCancel()
+		log.Fatalf("Browser worker %d failed to initialize: %v", id, err)
 	}
 
 	chromedp.ListenTarget(w.ctx, func(ev interface{}) {
+		// These are internal log events only
 		if ev, ok := ev.(*cdplog.EventEntryAdded); ok {
 			if ev.Entry.Level == cdplog.LevelError {
 				errorJson, err := json.MarshalIndent(ev.Entry, "", "  ")
 				if err != nil {
 					errorMsgFormat := "%s - %s"
 					errorMsg := fmt.Sprintf(errorMsgFormat, ev.Entry.URL, ev.Entry.Text)
-					w.errors = append(w.errors, errorMsg)
+					// w.errors = append(w.errors, errorMsg)
 					fmt.Printf("[%d, %s] console error: %s\n", w.id, w.currentUrl, errorMsg)
 				} else {
 					errorJsonStr := string(errorJson)
-					w.errors = append(w.errors, errorJsonStr)
-					fmt.Printf("[%d, %s] console error: %s\n", w.id, w.currentUrl, "")
+					// w.errors = append(w.errors, errorJsonStr)
+					fmt.Printf("[%d, %s] console error: %s\n", w.id, w.currentUrl, errorJsonStr)
 				}
 			}
 		}
 
+		// `console.error` also show up in these ones (not the above ones)
 		if ev, ok := ev.(*runtime.EventConsoleAPICalled); ok {
 			if ev.Type == "error" {
 				errorJson, err := json.MarshalIndent(ev, "", "  ")
 				if err != nil {
 					errorMsgFormat := "%s - %s"
 					errorMsg := fmt.Sprintf(errorMsgFormat, ev.Type, ev.Context)
-					w.errors = append(w.errors, errorMsg)
+					// w.errors = append(w.errors, errorMsg)
 					fmt.Printf("[%d, %s] console error: %s\n", w.id, w.currentUrl, errorMsg)
 				} else {
 					errorJsonStr := string(errorJson)
-					w.errors = append(w.errors, errorJsonStr)
-					fmt.Printf("[%d, %s] console error: %s\n", w.id, w.currentUrl, "")
-				}
-			}
-		}
-
-		if ev, ok := ev.(*runtime.EventBindingCalled); ok {
-			fmt.Printf("[%d, %s] received event binding call: %s\n", id, w.currentUrl, ev.Name)
-			if ev.Name == readyForPrintCbName {
-				select {
-				case w.readyForPrint <- struct{}{}:
-					break
-				default:
-					fmt.Printf("[%d, %s] readyForPrint channel full, ignoring\n", w.id, w.currentUrl)
+					// w.errors = append(w.errors, errorJsonStr)
+					fmt.Printf("[%d, %s] console error: %s\n", w.id, w.currentUrl, errorJsonStr)
 				}
 			}
 		}
 	})
 
 	fmt.Printf("Browser worker %d initialized successfully\n", id)
-	return w, nil
+	return w
 }
 
 func (w *browserWorker) run(requestCh <-chan workerRequest) {
+	defer w.allocCancel()
 	defer w.cancel()
 
 	for {
@@ -271,6 +338,8 @@ func (w *browserWorker) run(requestCh <-chan workerRequest) {
 			w.currentUrl = req.request.URL
 			w.handleRequest(&req)
 			w.currentUrl = ""
+			// It's important that we always respond, otherwise we leave
+			// requests hanging and timing out for no reason
 			if !req.hasResponded() {
 				log.Fatalf("[%d, %s] did not respond to request\n", w.id, w.currentUrl)
 			}
@@ -285,45 +354,61 @@ func (w *browserWorker) handleRequest(req *workerRequest) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Printf("[%d, %s] recovered from panic: %v\n", w.id, w.currentUrl, r)
-			req.tryRespondError(fmt.Errorf("panic handling request %s: %v", req.request.URL, r))
+			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, req.request.URL, fmt.Errorf("%v", r)))
 		}
 	}()
 
-	w.errors = w.errors[:0] // TODO: include errors in response?
-
-	// Drain any stale readyForPrint signals from previous runs
-	select {
-	case <-w.readyForPrint:
-		break
-	default:
-		break
+	if req.ctx.Err() != nil {
+		req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+		return
 	}
+
+	// TODO: include errors in response as diagnostics?
+	// metrics better suited?
+	// w.errors = w.errors[:0]
 
 	start := time.Now()
 
-	erroredWaiting := false
+	err := chromedp.Run(w.ctx, w.generatePdf(req))
+	// Immediately after running we should verify that we've ran the cleanup tasks
+	// If we haven't, theres a bug and we should just crash hard
+	if !req.cleanedUp {
+		log.Printf("[%d, %s] failed to cleanup storage, retrying...", w.id, w.currentUrl)
+		for i := range 3 {
+			err := chromedp.Run(w.ctx, cleanupTask(req))
+			if err != nil {
+				log.Printf("[%d, %s] failed to cleanup storage during retry %d, retrying...", w.id, w.currentUrl, i+1)
+			}
+			if req.cleanedUp {
+				break
+			}
+		}
 
-	err := chromedp.Run(w.ctx, w.generatePdf(req, &erroredWaiting))
-
-	if erroredWaiting {
-		fmt.Printf("[%d, %s] encountered errors while waiting for elements: %s\n", w.id, w.currentUrl, req.request.WaitFor)
+		if !req.cleanedUp {
+			log.Fatalf("[%d, %s] failed to cleanup storage, we're in an unsafe state and can't proceed", w.id, w.currentUrl)
+		}
 	}
 
 	duration := time.Since(start)
-	fmt.Printf("[%d, %s] completed PDF request for URL: %s in %.2f seconds\n", w.id, w.currentUrl, req.request.URL, duration.Seconds())
+	fmt.Printf("[%d, %s] completed PDF request in %.2f seconds\n", w.id, w.currentUrl, duration.Seconds())
 
 	if err != nil {
-		req.tryRespondError(err)
+		req.tryRespondError(w.mapChromedpError(err))
 	}
 }
 
-func (w *browserWorker) generatePdf(req *workerRequest, erroredWaiting *bool) chromedp.Tasks {
+func (w *browserWorker) generatePdf(req *workerRequest) chromedp.Tasks {
 	tasks := chromedp.Tasks{}
 
-	// Set cookies from request
 	request := req.request
 	for _, cookie := range request.Cookies {
 		tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
+			if req.ctx.Err() != nil {
+				// It's OK to just return here because we haven't done anything with
+				// the users input yet.
+				return types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err())
+			}
+
 			sameSite := network.CookieSameSiteLax
 			switch cookie.SameSite {
 			case "Strict":
@@ -331,51 +416,75 @@ func (w *browserWorker) generatePdf(req *workerRequest, erroredWaiting *bool) ch
 			case "None":
 				sameSite = network.CookieSameSiteNone
 			}
-			return network.SetCookie(cookie.Name, cookie.Value).
+			err := network.SetCookie(cookie.Name, cookie.Value).
 				WithDomain(cookie.Domain).
 				WithPath("/").
 				WithSecure(false).
 				WithHTTPOnly(false).
 				WithSameSite(sameSite).
 				Do(ctx)
-		}))
-	}
-
-	// Navigate to URL
-	tasks = append(tasks, chromedp.Navigate(request.URL))
-
-	// Wait for element if specified
-	waitSelector := request.WaitFor
-	if waitSelector != "" {
-		tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
-			ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-			defer cancel()
-			err := chromedp.WaitReady(waitSelector, chromedp.ByQuery).Do(ctx)
 			if err != nil {
-				*erroredWaiting = true
-				log.Printf("[%d, %s] failed to wait for element %q: %v", w.id, w.currentUrl, waitSelector, err)
-			}
-			return err
-		}))
-	} else {
-		tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
-			ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-			defer cancel()
-			select {
-			case <-w.readyForPrint:
-				break
-			case <-ctx.Done():
-				return ctx.Err()
+				req.tryRespondError(types.NewPDFError(types.ErrSetCookieFail, "", err))
 			}
 			return nil
 		}))
 	}
 
-	// Generate PDF with options
 	tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
-		pdfParams := page.PrintToPDF()
+		// Now we have potentially set cookies, so it is no longer safe
+		// to return errors from tasks because then chromedp will shortcircuit and
+		// not execute the cleanup tasks at the end of the task slice. See below
+		if req.hasResponded() {
+			return nil
+		}
+		if req.ctx.Err() != nil {
+			req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+			return nil
+		}
+		err := chromedp.Navigate(request.URL).Do(ctx)
+		if err != nil {
+			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+		}
+		return nil
+	}))
 
-		// Apply options
+	waitSelector := request.WaitFor
+	if waitSelector != "" {
+		tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
+			if req.hasResponded() {
+				return nil
+			}
+			if req.ctx.Err() != nil {
+				req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+				return nil
+			}
+
+			// TODO: should we fail early here if we discover errors?
+			// update frontend to communicate significant errors?
+			// Some errors are not significant, e.g. failing requests
+			// (e.g. user profile can give 400 for service owner tokens, but the frontend handles that)
+			ctx, cancel := context.WithTimeout(ctx, 25*time.Second)
+			defer cancel()
+			err := chromedp.WaitReady(waitSelector, chromedp.ByQuery).Do(ctx)
+			if err != nil {
+				log.Printf("[%d, %s] failed to wait for element %q: %v", w.id, w.currentUrl, waitSelector, err)
+				req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", waitSelector), err))
+			}
+			return nil
+		}))
+	}
+
+	tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
+		if req.hasResponded() {
+			return nil
+		}
+		if req.ctx.Err() != nil {
+			req.tryRespondError(types.NewPDFError(types.ErrClientDropped, "", req.ctx.Err()))
+			return nil
+		}
+
+		pdfParams := page.PrintToPDF().WithPreferCSSPageSize(true).WithScale(1)
+
 		if request.Options.PrintBackground {
 			pdfParams = pdfParams.WithPrintBackground(true)
 		}
@@ -406,20 +515,73 @@ func (w *browserWorker) generatePdf(req *workerRequest, erroredWaiting *bool) ch
 
 		buf, _, err := pdfParams.Do(ctx)
 		if err != nil {
-			return err
+			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
+			return nil
 		}
 
-		req.respondOk(buf)
+		// We optimize for user latency, so we respond here as soon as we know we have a good PDF
+		// The cleanup below happens independently in the background.
+		// When it is complete, the worker can proceed to take user requests from the generator queue
+		req.tryRespondOk(buf)
 		return nil
 	}))
 
 	// Navigate back to default
-	tasks = append(tasks, chromedp.Navigate("about:blank"))
+	// It's important that this is here, otherwise Chrome isn't really going
+	// to navigate if the current request is the same URL as the last request
+	// (unlikely, but can happen during tests or due to client retries)
+	tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
+		err := chromedp.Navigate("about:blank").Do(ctx)
+		if err != nil {
+			log.Printf("[%d, %s] failed to navigate out of url: %v", w.id, w.currentUrl, err)
+		}
+		return nil
+	}))
 
-	// Clear origin data (storage, cookies, etc.)
-	tasks = append(tasks, storage.ClearDataForOrigin(request.URL, "all"))
+	// TODO: which resources don't have to be cleared? Would be nice to cache static assets
+	// one way to find out would be to analyze the user-data-dir in the container before/after clearing data
+	// and running some experiments with different storage types left out
+	tasks = append(tasks, cleanupTask(req))
 
 	return tasks
+}
+
+func cleanupTask(req *workerRequest) chromedp.ActionFunc {
+	request := &req.request
+	return chromedp.ActionFunc(func(ctx context.Context) error {
+		if req.cleanedUp {
+			return nil
+		}
+		err := storage.ClearDataForOrigin(request.URL, "all").Do(ctx)
+		req.cleanedUp = err == nil
+		return err
+	})
+}
+
+func createBrowserOptions() []chromedp.ExecAllocatorOption {
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		// Text layout is slightly off without these options..
+		// Discovered while moving from old version of browserless container
+		chromedp.Flag("disable-font-subpixel-positioning", true),
+		chromedp.Flag("font-render-hinting", "none"),
+	)
+	return opts
+}
+
+// mapChromedpError wraps raw chromedp errors while preserving our PDFErrors
+func (w *browserWorker) mapChromedpError(err error) *types.PDFError {
+	if err == nil {
+		return nil
+	}
+
+	// Check if it's already our custom error type
+	var pdfErr *types.PDFError
+	if errors.As(err, &pdfErr) {
+		return pdfErr
+	}
+
+	// Wrap other errors (including chromedp's internal wrapped errors)
+	return types.NewPDFError(types.ErrUnhandledBrowserError, "", err)
 }
 
 // convertMargin converts margin strings like "0.75in" to float64 inches

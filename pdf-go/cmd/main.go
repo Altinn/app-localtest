@@ -1,8 +1,8 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -27,34 +27,49 @@ func main() {
 	})
 	http.HandleFunc("/pdf", handlePdfGeneration)
 
-	fmt.Println("PDF server starting on :5011")
+	log.Println("PDF server starting on :5011")
 	log.Fatal(http.ListenAndServe(":5011", nil))
 }
 
 func handlePdfGeneration(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		writeProblemDetails(w, ProblemDetails{
+			Type:   "about:blank",
+			Title:  "Method Not Allowed",
+			Status: http.StatusMethodNotAllowed,
+			Detail: "Only POST method is allowed for PDF generation",
+		})
 		return
 	}
 
 	var req types.PdfRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		writeProblemDetails(w, ProblemDetails{
+			Type:   "about:blank",
+			Title:  "Bad Request",
+			Status: http.StatusBadRequest,
+			Detail: "Invalid JSON in request body",
+		})
 		return
 	}
 
 	if req.URL == "" {
-		http.Error(w, "URL is required", http.StatusBadRequest)
+		writeProblemDetails(w, ProblemDetails{
+			Type:   "about:blank",
+			Title:  "Bad Request",
+			Status: http.StatusBadRequest,
+			Detail: "URL field is required",
+		})
 		return
 	}
 
-	result, err := generator.Generate(context.Background(), req)
+	result, err := generator.Generate(r.Context(), req)
 	if err != nil {
 		log.Printf("Error generating PDF: %v", err)
-		response := types.PdfResponse{Success: false, Error: err.Error()}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(response)
+
+		statusCode, problemDetails := mapErrorToProblemDetails(err)
+		problemDetails.Status = statusCode
+		writeProblemDetails(w, problemDetails)
 		return
 	}
 
@@ -64,4 +79,69 @@ func handlePdfGeneration(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Browser-Revision", result.Browser.Revision)
 	w.Header().Set("X-Browser-ProtocolVersion", result.Browser.ProtocolVersion)
 	w.Write(result.Data)
+}
+
+type ProblemDetails struct {
+	Type     string `json:"type"`
+	Title    string `json:"title"`
+	Status   int    `json:"status"`
+	Detail   string `json:"detail,omitempty"`
+	Instance string `json:"instance,omitempty"`
+}
+
+func writeProblemDetails(w http.ResponseWriter, problem ProblemDetails) {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(problem.Status)
+	json.NewEncoder(w).Encode(problem)
+}
+
+func mapErrorToProblemDetails(err error) (int, ProblemDetails) {
+	var pdfErr *types.PDFError
+	if errors.As(err, &pdfErr) {
+		switch {
+		case errors.Is(pdfErr, types.ErrQueueFull):
+			return http.StatusTooManyRequests, ProblemDetails{
+				Type:   "about:blank",
+				Title:  "Too Many Requests",
+				Detail: "PDF generator queue is full, please try again later",
+			}
+		case errors.Is(pdfErr, types.ErrTimeout):
+			return http.StatusRequestTimeout, ProblemDetails{
+				Type:   "about:blank",
+				Title:  "Request Timeout",
+				Detail: "PDF generation timed out during processing",
+			}
+		case errors.Is(pdfErr, types.ErrSetCookieFail):
+			return http.StatusBadRequest, ProblemDetails{
+				Type:   "about:blank",
+				Title:  "Bad Request",
+				Detail: "Failed to set cookies for PDF generation",
+			}
+		case errors.Is(pdfErr, types.ErrElementNotReady):
+			return http.StatusBadRequest, ProblemDetails{
+				Type:   "about:blank",
+				Title:  "Bad Request",
+				Detail: "Wait condition element not ready within timeout",
+			}
+		case errors.Is(pdfErr, types.ErrGenerationFail):
+			return http.StatusInternalServerError, ProblemDetails{
+				Type:   "about:blank",
+				Title:  "Internal Server Error",
+				Detail: "PDF generation failed",
+			}
+		case errors.Is(pdfErr, types.ErrUnhandledBrowserError):
+			return http.StatusInternalServerError, ProblemDetails{
+				Type:   "about:blank",
+				Title:  "Internal Server Error",
+				Detail: "Browser operation failed unexpectedly",
+			}
+		}
+	}
+
+	// Default error handling
+	return http.StatusInternalServerError, ProblemDetails{
+		Type:   "about:blank",
+		Title:  "Internal Server Error",
+		Detail: "An unexpected error occurred during PDF generation",
+	}
 }

@@ -35,7 +35,7 @@ create_json_payload() {
         }
     },
     "setJavaScriptEnabled": true,
-    "waitFor": "",
+    "waitFor": "#readyForPrint",
     "cookies": [
         {
             "name": "AltinnStudioRuntime",
