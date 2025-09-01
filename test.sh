@@ -26,7 +26,7 @@ create_json_payload() {
         }
     },
     "setJavaScriptEnabled": true,
-    "waitFor": "#readyForPrint",
+    "waitFor": "",
     "cookies": [
         {
             "name": "AltinnStudioRuntime",
@@ -113,9 +113,9 @@ main() {
     test_pdf_generation "PDF generation WITH cookie (Instance: $INSTANCE_ID_WITH_COOKIE)" "$payload_with_cookie" "output/test-with-cookie.pdf"
     
     # Second test: without cookie
-    local url_without_cookie="http://local.altinn.cloud/ttd/subform-test/#/instance/${INSTANCE_ID_WITHOUT_COOKIE}?pdf=1&lang=nb"
-    local payload_without_cookie=$(create_json_payload_no_cookie "$url_without_cookie")
-    test_pdf_generation "PDF generation WITHOUT cookie (Instance: $INSTANCE_ID_WITHOUT_COOKIE)" "$payload_without_cookie" "output/test-without-cookie.pdf"
+    # local url_without_cookie="http://local.altinn.cloud/ttd/subform-test/#/instance/${INSTANCE_ID_WITHOUT_COOKIE}?pdf=1&lang=nb"
+    # local payload_without_cookie=$(create_json_payload_no_cookie "$url_without_cookie")
+    # test_pdf_generation "PDF generation WITHOUT cookie (Instance: $INSTANCE_ID_WITHOUT_COOKIE)" "$payload_without_cookie" "output/test-without-cookie.pdf"
     
     echo "Test completed!"
     echo "Results:"

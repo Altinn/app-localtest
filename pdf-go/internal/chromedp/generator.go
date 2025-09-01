@@ -14,6 +14,7 @@ import (
 	cdplog "github.com/chromedp/cdproto/log"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/cdproto/storage"
 	"github.com/chromedp/chromedp"
 
@@ -170,10 +171,15 @@ type workerResponse struct {
 }
 
 type browserWorker struct {
-	id     int
-	ctx    context.Context
-	cancel context.CancelFunc
+	id            int
+	ctx           context.Context
+	cancel        context.CancelFunc
+	errors        []string
+	readyForPrint chan struct{}
+	currentUrl    string
 }
+
+const readyForPrintCbName = "altinnStudioAppReadyForPrintCb"
 
 func newBrowserWorker(id int) (*browserWorker, error) {
 	ctx, cancel := chromedp.NewContext(context.Background(), chromedp.WithBrowserOption(chromedp.WithBrowserLogf(func(format string, args ...interface{}) {
@@ -186,19 +192,70 @@ func newBrowserWorker(id int) (*browserWorker, error) {
 		fmt.Printf("%s", "[Browser] "+msg+"\n")
 	})))
 
-	worker := &browserWorker{
-		id:     id,
-		ctx:    ctx,
-		cancel: cancel,
+	w := &browserWorker{
+		id:            id,
+		ctx:           ctx,
+		cancel:        cancel,
+		errors:        make([]string, 32),
+		readyForPrint: make(chan struct{}, 1),
+		currentUrl:    "",
 	}
 
-	if err := chromedp.Run(ctx); err != nil {
+	if err := chromedp.Run(w.ctx, chromedp.Tasks{
+		runtime.AddBinding(readyForPrintCbName),
+	}); err != nil {
 		cancel()
 		return nil, fmt.Errorf("failed to initialize browser worker %d: %v", id, err)
 	}
 
+	chromedp.ListenTarget(w.ctx, func(ev interface{}) {
+		if ev, ok := ev.(*cdplog.EventEntryAdded); ok {
+			if ev.Entry.Level == cdplog.LevelError {
+				errorJson, err := json.MarshalIndent(ev.Entry, "", "  ")
+				if err != nil {
+					errorMsgFormat := "%s - %s"
+					errorMsg := fmt.Sprintf(errorMsgFormat, ev.Entry.URL, ev.Entry.Text)
+					w.errors = append(w.errors, errorMsg)
+					fmt.Printf("[%d, %s] console error: %s\n", w.id, w.currentUrl, errorMsg)
+				} else {
+					errorJsonStr := string(errorJson)
+					w.errors = append(w.errors, errorJsonStr)
+					fmt.Printf("[%d, %s] console error: %s\n", w.id, w.currentUrl, "")
+				}
+			}
+		}
+
+		if ev, ok := ev.(*runtime.EventConsoleAPICalled); ok {
+			if ev.Type == "error" {
+				errorJson, err := json.MarshalIndent(ev, "", "  ")
+				if err != nil {
+					errorMsgFormat := "%s - %s"
+					errorMsg := fmt.Sprintf(errorMsgFormat, ev.Type, ev.Context)
+					w.errors = append(w.errors, errorMsg)
+					fmt.Printf("[%d, %s] console error: %s\n", w.id, w.currentUrl, errorMsg)
+				} else {
+					errorJsonStr := string(errorJson)
+					w.errors = append(w.errors, errorJsonStr)
+					fmt.Printf("[%d, %s] console error: %s\n", w.id, w.currentUrl, "")
+				}
+			}
+		}
+
+		if ev, ok := ev.(*runtime.EventBindingCalled); ok {
+			fmt.Printf("[%d, %s] received event binding call: %s\n", id, w.currentUrl, ev.Name)
+			if ev.Name == readyForPrintCbName {
+				select {
+				case w.readyForPrint <- struct{}{}:
+					break
+				default:
+					fmt.Printf("[%d, %s] readyForPrint channel full, ignoring\n", w.id, w.currentUrl)
+				}
+			}
+		}
+	})
+
 	fmt.Printf("Browser worker %d initialized successfully\n", id)
-	return worker, nil
+	return w, nil
 }
 
 func (w *browserWorker) run(requestCh <-chan workerRequest) {
@@ -211,9 +268,11 @@ func (w *browserWorker) run(requestCh <-chan workerRequest) {
 				fmt.Printf("Worker %d shutting down\n", w.id)
 				return
 			}
+			w.currentUrl = req.request.URL
 			w.handleRequest(&req)
+			w.currentUrl = ""
 			if !req.hasResponded() {
-				log.Fatalf("Worker %d did not respond to request\n", w.id)
+				log.Fatalf("[%d, %s] did not respond to request\n", w.id, w.currentUrl)
 			}
 		case <-w.ctx.Done():
 			fmt.Printf("Worker %d shutting down\n", w.id)
@@ -225,44 +284,33 @@ func (w *browserWorker) run(requestCh <-chan workerRequest) {
 func (w *browserWorker) handleRequest(req *workerRequest) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("Recovered from panic:", r)
+			fmt.Printf("[%d, %s] recovered from panic: %v\n", w.id, w.currentUrl, r)
 			req.tryRespondError(fmt.Errorf("panic handling request %s: %v", req.request.URL, r))
 		}
 	}()
 
+	w.errors = w.errors[:0] // TODO: include errors in response?
+
+	// Drain any stale readyForPrint signals from previous runs
+	select {
+	case <-w.readyForPrint:
+		break
+	default:
+		break
+	}
+
 	start := time.Now()
 
 	erroredWaiting := false
-	errors := make([]string, 0)
-
-	listenCtx, cancel := context.WithCancel(w.ctx)
-	defer cancel()
-	chromedp.ListenTarget(listenCtx, func(ev interface{}) {
-		if ev, ok := ev.(*cdplog.EventEntryAdded); ok {
-			if ev.Entry.Level == cdplog.LevelError {
-				errorJson, err := json.Marshal(ev.Entry)
-				if err != nil {
-					errorMsgFormat := "%s - %s"
-					errorMsg := fmt.Sprintf(errorMsgFormat, ev.Entry.URL, ev.Entry.Text)
-					errors = append(errors, errorMsg)
-				} else {
-					errors = append(errors, string(errorJson))
-				}
-			}
-		}
-	})
 
 	err := chromedp.Run(w.ctx, w.generatePdf(req, &erroredWaiting))
 
 	if erroredWaiting {
-		fmt.Printf("Worker %d encountered errors while waiting for elements: %s\n", w.id, req.request.WaitFor)
-	}
-	if len(errors) > 0 {
-		fmt.Printf("Worker %d encountered console errors:\n%s\n", w.id, strings.Join(errors, "\n"))
+		fmt.Printf("[%d, %s] encountered errors while waiting for elements: %s\n", w.id, w.currentUrl, req.request.WaitFor)
 	}
 
 	duration := time.Since(start)
-	fmt.Printf("Worker %d completed PDF request for URL: %s in %.2f seconds\n", w.id, req.request.URL, duration.Seconds())
+	fmt.Printf("[%d, %s] completed PDF request for URL: %s in %.2f seconds\n", w.id, w.currentUrl, req.request.URL, duration.Seconds())
 
 	if err != nil {
 		req.tryRespondError(err)
@@ -305,9 +353,21 @@ func (w *browserWorker) generatePdf(req *workerRequest, erroredWaiting *bool) ch
 			err := chromedp.WaitReady(waitSelector, chromedp.ByQuery).Do(ctx)
 			if err != nil {
 				*erroredWaiting = true
-				log.Printf("Failed to wait for element %q: %v", waitSelector, err)
+				log.Printf("[%d, %s] failed to wait for element %q: %v", w.id, w.currentUrl, waitSelector, err)
 			}
 			return err
+		}))
+	} else {
+		tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
+			ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+			defer cancel()
+			select {
+			case <-w.readyForPrint:
+				break
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+			return nil
 		}))
 	}
 
@@ -353,12 +413,11 @@ func (w *browserWorker) generatePdf(req *workerRequest, erroredWaiting *bool) ch
 		return nil
 	}))
 
+	// Navigate back to default
+	tasks = append(tasks, chromedp.Navigate("about:blank"))
+
 	// Clear origin data (storage, cookies, etc.)
-	tasks = append(tasks, chromedp.ActionFunc(func(ctx context.Context) error {
-		storageTypes := "all"
-		return storage.ClearDataForOrigin(request.URL, storageTypes).
-			Do(ctx)
-	}))
+	tasks = append(tasks, storage.ClearDataForOrigin(request.URL, "all"))
 
 	return tasks
 }
