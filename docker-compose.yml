@@ -194,8 +194,8 @@ services:
   #   security_opt:
   #     - seccomp:unconfined
 
-  pdf_go:
-    container_name: altinn-pdf-go
+  pdf_go_gorod:
+    container_name: altinn-pdf-go-gorod
     image: altinn-pdf-go:latest
     build:
       context: ./pdf-go
@@ -203,7 +203,9 @@ services:
     networks:
       - altinntestlocal_network
     ports:
-      - "5011:5011"
+      - "5012:5011"
+    environment:
+      - PDF_GENERATOR=gorod
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5011/health || exit 1"]
       interval: 1s
@@ -213,10 +215,28 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
-    cap_add:
-      - SYS_ADMIN
-    security_opt:
-      - seccomp:unconfined
+
+  pdf_go_chromedp:
+    container_name: altinn-pdf-go-chromedp
+    image: altinn-pdf-go:latest
+    build:
+      context: ./pdf-go
+    restart: always
+    networks:
+      - altinntestlocal_network
+    ports:
+      - "5011:5011"
+    environment:
+      - PDF_GENERATOR=chromedp
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5011/health || exit 1"]
+      interval: 1s
+      timeout: 1s
+      retries: 20
+      start_period: 1s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
 
 volumes:
   AltinnPlatformLocal:

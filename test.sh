@@ -68,6 +68,7 @@ test_pdf_generation() {
     local description="$1"
     local payload="$2"
     local output_file="$3"
+    local service_url="$4"
     
     echo "Testing $description..."
     echo "======================================"
@@ -79,7 +80,7 @@ test_pdf_generation() {
     curl -X POST \
         -H "Content-Type: application/json" \
         -d @"$temp_payload" \
-        "http://127.0.0.1:5011/pdf" \
+        "$service_url" \
         -o "$output_file" \
         -D "output/headers-$(basename "$output_file" .pdf).txt" \
         -w "HTTP Status: %{http_code}\nTime: %{time_total}s\n"
@@ -107,21 +108,24 @@ main() {
     
     echo ""
     
-    # First test: with cookie
+    # Test both generators with cookie
     local url_with_cookie="http://local.altinn.cloud/ttd/subform-test/#/instance/${INSTANCE_ID_WITH_COOKIE}?pdf=1&lang=nb"
     local payload_with_cookie=$(create_json_payload "$url_with_cookie" "$token")
-    test_pdf_generation "PDF generation WITH cookie (Instance: $INSTANCE_ID_WITH_COOKIE)" "$payload_with_cookie" "output/test-with-cookie.pdf"
     
-    # Second test: without cookie
+    test_pdf_generation "PDF generation WITH cookie - gorod (Instance: $INSTANCE_ID_WITH_COOKIE)" "$payload_with_cookie" "output/test-gorod-with-cookie.pdf" "http://127.0.0.1:5012/pdf"
+    test_pdf_generation "PDF generation WITH cookie - chromedp (Instance: $INSTANCE_ID_WITH_COOKIE)" "$payload_with_cookie" "output/test-chromedp-with-cookie.pdf" "http://127.0.0.1:5011/pdf"
+    
+    # Second test: without cookie (commented out but structure updated for both generators)
     # local url_without_cookie="http://local.altinn.cloud/ttd/subform-test/#/instance/${INSTANCE_ID_WITHOUT_COOKIE}?pdf=1&lang=nb"
     # local payload_without_cookie=$(create_json_payload_no_cookie "$url_without_cookie")
-    # test_pdf_generation "PDF generation WITHOUT cookie (Instance: $INSTANCE_ID_WITHOUT_COOKIE)" "$payload_without_cookie" "output/test-without-cookie.pdf"
+    # test_pdf_generation "PDF generation WITHOUT cookie - gorod (Instance: $INSTANCE_ID_WITHOUT_COOKIE)" "$payload_without_cookie" "output/test-gorod-without-cookie.pdf" "http://127.0.0.1:5012/pdf"
+    # test_pdf_generation "PDF generation WITHOUT cookie - chromedp (Instance: $INSTANCE_ID_WITHOUT_COOKIE)" "$payload_without_cookie" "output/test-chromedp-without-cookie.pdf" "http://127.0.0.1:5011/pdf"
     
     echo "Test completed!"
     echo "Results:"
-    echo "- With cookie: output/test-with-cookie.pdf"
-    echo "- Without cookie: output/test-without-cookie.pdf"
-    echo "- Headers: output/headers-test-with-cookie.txt, output/headers-test-without-cookie.txt"
+    echo "- Gorod with cookie: output/test-gorod-with-cookie.pdf"
+    echo "- ChromeDP with cookie: output/test-chromedp-with-cookie.pdf"
+    echo "- Headers: output/headers-test-gorod-with-cookie.txt, output/headers-test-chromedp-with-cookie.txt"
 }
 
 # Only run main if script is executed directly (not sourced)

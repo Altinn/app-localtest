@@ -6,20 +6,39 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	chromedp "altinn/pdf/internal/chromedp"
+	gorod "altinn/pdf/internal/gorod"
 	"altinn/pdf/internal/types"
 )
 
 var generator types.PdfGenerator
 
 func main() {
+	configuredGenerator := os.Getenv("PDF_GENERATOR")
+	if configuredGenerator == "" {
+		configuredGenerator = "chromedp"
+	}
+
 	var err error
-	generator, err = chromedp.New()
-	if err != nil {
-		log.Fatalf("Failed to create PDF generator: %v", err)
+	switch configuredGenerator {
+	case "gorod":
+		generator, err = gorod.New()
+		if err != nil {
+			log.Fatalf("Failed to create PDF generator: %v", err)
+		}
+	case "chromedp":
+		generator, err = chromedp.New()
+		if err != nil {
+			log.Fatalf("Failed to create PDF generator: %v", err)
+		}
+	default:
+		log.Fatalf("Unknown PDF generator: %s. Supported generators: gorod, chromedp", configuredGenerator)
 	}
 	defer generator.Close()
+
+	log.Printf("Using PDF generator: %s", configuredGenerator)
 
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

@@ -124,6 +124,7 @@ Relative performance compared to Old browserless (baseline):
 * Investigate custom implementation (timebox)
   * 01.09.2025 - seems like this doesn't yield the wanted benefits (batching and efficiency). The client has to wait for responses as there is no way to tell chrome to do certain operations serially
 * Investigate go-rod (timebox)
+  * 02.09.2025 - go-rod seems to be atleast a little buggy, was unable to configure `GenerateTaggedPDF` to false since it deems false as empty during `omitempty` JSON serialization config (browser defaults to true apparantly). I therefore set it to true for both generators during loadtests and it seems like chromedp came out on top, unclear why, would have to understand a lot more about internals. So while chromedp has a lot more complicated interface, it is more efficient (both measured in latency and the initial memory usage it seems)
 * Design v3 architecture (what happens in k8s)
 * Securiy clarifications
 * Build

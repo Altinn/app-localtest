@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -46,6 +48,7 @@ func New() (*ChromeDP, error) {
 		fmt.Printf("Initializing ChromeDP\n")
 
 		opts := createBrowserOptions()
+		opts = append(opts, logArgs())
 		allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), opts...)
 		defer allocCancel()
 		initCtx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
@@ -191,6 +194,8 @@ type browserWorker struct {
 
 func newBrowserWorker(id int) *browserWorker {
 	opts := createBrowserOptions()
+	// Override user data directory for this worker
+	opts = append(opts, chromedp.UserDataDir(fmt.Sprintf("/tmp/browser-%d", id)))
 	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), opts...)
 
 	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithBrowserOption(chromedp.WithBrowserLogf(func(format string, args ...interface{}) {
@@ -324,13 +329,13 @@ func newBrowserWorker(id int) *browserWorker {
 	return w
 }
 
-func (w *browserWorker) run(requestCh <-chan workerRequest) {
+func (w *browserWorker) run(queue <-chan workerRequest) {
 	defer w.allocCancel()
 	defer w.cancel()
 
 	for {
 		select {
-		case req, ok := <-requestCh:
+		case req, ok := <-queue:
 			if !ok {
 				fmt.Printf("Worker %d shutting down\n", w.id)
 				return
@@ -483,37 +488,50 @@ func (w *browserWorker) generatePdf(req *workerRequest) chromedp.Tasks {
 			return nil
 		}
 
-		pdfParams := page.PrintToPDF().WithPreferCSSPageSize(true).WithScale(1)
+		pdfOptions := page.PrintToPDF().
+			WithPreferCSSPageSize(true).
+			WithScale(1).
+			WithGenerateTaggedPDF(true).
+			WithGenerateDocumentOutline(false)
 
 		if request.Options.PrintBackground {
-			pdfParams = pdfParams.WithPrintBackground(true)
+			pdfOptions = pdfOptions.WithPrintBackground(true)
 		}
 
 		if request.Options.DisplayHeaderFooter {
-			pdfParams = pdfParams.WithDisplayHeaderFooter(true)
+			pdfOptions = pdfOptions.WithDisplayHeaderFooter(true)
 			if request.Options.HeaderTemplate != "" {
-				pdfParams = pdfParams.WithHeaderTemplate(request.Options.HeaderTemplate)
+				pdfOptions = pdfOptions.WithHeaderTemplate(request.Options.HeaderTemplate)
 			}
 			if request.Options.FooterTemplate != "" {
-				pdfParams = pdfParams.WithFooterTemplate(request.Options.FooterTemplate)
+				pdfOptions = pdfOptions.WithFooterTemplate(request.Options.FooterTemplate)
 			}
 		}
 
 		// Set margins if specified
 		if request.Options.Margin.Top != "" {
-			pdfParams = pdfParams.WithMarginTop(convertMargin(request.Options.Margin.Top))
+			pdfOptions = pdfOptions.WithMarginTop(convertMargin(request.Options.Margin.Top))
 		}
 		if request.Options.Margin.Right != "" {
-			pdfParams = pdfParams.WithMarginRight(convertMargin(request.Options.Margin.Right))
+			pdfOptions = pdfOptions.WithMarginRight(convertMargin(request.Options.Margin.Right))
 		}
 		if request.Options.Margin.Bottom != "" {
-			pdfParams = pdfParams.WithMarginBottom(convertMargin(request.Options.Margin.Bottom))
+			pdfOptions = pdfOptions.WithMarginBottom(convertMargin(request.Options.Margin.Bottom))
 		}
 		if request.Options.Margin.Left != "" {
-			pdfParams = pdfParams.WithMarginLeft(convertMargin(request.Options.Margin.Left))
+			pdfOptions = pdfOptions.WithMarginLeft(convertMargin(request.Options.Margin.Left))
 		}
 
-		buf, _, err := pdfParams.Do(ctx)
+		// {
+		// 	// DEBUG: JSON dump to logs
+		// 	optionsJson, err := json.MarshalIndent(pdfOptions, "", "  ")
+		// 	if err != nil {
+		// 		log.Printf("[%d, %s] failed to marshal PDF options to JSON: %v", w.id, w.currentUrl, err)
+		// 	} else {
+		// 		log.Printf("[%d, %s] PDF options: %s", w.id, w.currentUrl, optionsJson)
+		// 	}
+		// }
+		buf, _, err := pdfOptions.Do(ctx)
 		if err != nil {
 			req.tryRespondError(types.NewPDFError(types.ErrGenerationFail, "", err))
 			return nil
@@ -564,8 +582,24 @@ func createBrowserOptions() []chromedp.ExecAllocatorOption {
 		// Discovered while moving from old version of browserless container
 		chromedp.Flag("disable-font-subpixel-positioning", true),
 		chromedp.Flag("font-render-hinting", "none"),
+		// Set user data directory for init browser
+		chromedp.UserDataDir("/tmp/browser-init"),
 	)
 	return opts
+}
+
+func logArgs() chromedp.ExecAllocatorOption {
+	return chromedp.ModifyCmdFunc(func(cmd *exec.Cmd) {
+		// Make copy of args
+		args := make([]string, len(cmd.Args))
+		copy(args, cmd.Args)
+		sort.Strings(args)
+		argsAsJson, err := json.MarshalIndent(args, "", "  ")
+		if err != nil {
+			log.Fatalf("Failed to marshal browser args to JSON: %v", err)
+		}
+		log.Printf("Browser args: %v", string(argsAsJson))
+	})
 }
 
 // mapChromedpError wraps raw chromedp errors while preserving our PDFErrors
