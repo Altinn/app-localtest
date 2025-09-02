@@ -491,7 +491,7 @@ func (w *browserWorker) generatePdf(req *workerRequest) chromedp.Tasks {
 		pdfOptions := page.PrintToPDF().
 			WithPreferCSSPageSize(true).
 			WithScale(1).
-			WithGenerateTaggedPDF(true).
+			WithGenerateTaggedPDF(false).
 			WithGenerateDocumentOutline(false)
 
 		if request.Options.PrintBackground {
