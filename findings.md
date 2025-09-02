@@ -122,6 +122,7 @@ Relative performance compared to Old browserless (baseline):
 ## Next steps
 
 * Investigate custom implementation (timebox)
+  * 01.09.2025 - seems like this doesn't yield the wanted benefits (batching and efficiency). The client has to wait for responses as there is no way to tell chrome to do certain operations serially
 * Investigate go-rod (timebox)
 * Design v3 architecture (what happens in k8s)
 * Securiy clarifications
