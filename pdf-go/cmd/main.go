@@ -9,6 +9,7 @@ import (
 	"os"
 
 	chromedp "altinn/pdf/internal/chromedp"
+	custom "altinn/pdf/internal/custom"
 	gorod "altinn/pdf/internal/gorod"
 	"altinn/pdf/internal/types"
 )
@@ -28,13 +29,18 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to create PDF generator: %v", err)
 		}
+	case "custom":
+		generator, err = custom.New()
+		if err != nil {
+			log.Fatalf("Failed to create PDF generator: %v", err)
+		}
 	case "chromedp":
 		generator, err = chromedp.New()
 		if err != nil {
 			log.Fatalf("Failed to create PDF generator: %v", err)
 		}
 	default:
-		log.Fatalf("Unknown PDF generator: %s. Supported generators: gorod, chromedp", configuredGenerator)
+		log.Fatalf("Unknown PDF generator: %s. Supported generators: custom, gorod, chromedp", configuredGenerator)
 	}
 	defer generator.Close()
 

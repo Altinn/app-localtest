@@ -79,6 +79,7 @@ generate_pdf_curl() {
         *5010*) container_name="altinn-pdf-rust" ;;
         *5011*) container_name="altinn-pdf-go-chromedp" ;;
         *5012*) container_name="altinn-pdf-go-gorod" ;;
+        *5013*) container_name="altinn-pdf-go-custom" ;;
     esac
     
     if [ -n "$container_name" ]; then
@@ -411,6 +412,7 @@ execute() {
     # local rust_startup=$(measure_average_startup_time "altinn-pdf-rust" "pdf_rust" "http://127.0.0.1:5010/health")
     local go_gorod_startup=$(measure_average_startup_time "altinn-pdf-go-gorod" "pdf_go_gorod" "http://127.0.0.1:5012/health")
     local go_chromedp_startup=$(measure_average_startup_time "altinn-pdf-go-chromedp" "pdf_go_chromedp" "http://127.0.0.1:5011/health")
+    local go_custom_startup=$(measure_average_startup_time "altinn-pdf-go-custom" "pdf_go_custom" "http://127.0.0.1:5013/health")
     
     # Ensure all containers are running after measurements
     echo "Ensuring all containers are running..."
@@ -422,12 +424,14 @@ execute() {
     # local rust_memory_before=$(measure_container_memory "altinn-pdf-rust")
     local go_gorod_memory_before=$(measure_container_memory "altinn-pdf-go-gorod")
     local go_chromedp_memory_before=$(measure_container_memory "altinn-pdf-go-chromedp")
+    local go_custom_memory_before=$(measure_container_memory "altinn-pdf-go-custom")
     
     # Store memory before values for later use
     # echo "$browserless_memory_before" > "/tmp/memory_before_altinn-pdf-service.txt"
     # echo "$rust_memory_before" > "/tmp/memory_before_altinn-pdf-rust.txt"
     echo "$go_gorod_memory_before" > "/tmp/memory_before_altinn-pdf-go-gorod.txt"
     echo "$go_chromedp_memory_before" > "/tmp/memory_before_altinn-pdf-go-chromedp.txt"
+    echo "$go_custom_memory_before" > "/tmp/memory_before_altinn-pdf-go-custom.txt"
     
     # Get token (containers are ready due to --wait)
     local token=$(curl -s "http://local.altinn.cloud/Home/GetTestOrgToken/ttd?orgNumber=405003309&scopes=altinn:serviceowner/instances.read%20altinn:serviceowner/instances.write" || echo "")
@@ -442,14 +446,16 @@ execute() {
     # generate_pdf_curl "rust PDF service" "http://127.0.0.1:5010/pdf" "output/test-rust.pdf" "$url" "$token"
     generate_pdf_curl "go PDF service (gorod)" "http://127.0.0.1:5012/pdf" "output/test-go-gorod.pdf" "$url" "$token"
     generate_pdf_curl "go PDF service (chromedp)" "http://127.0.0.1:5011/pdf" "output/test-go-chromedp.pdf" "$url" "$token"
+    generate_pdf_curl "go PDF service (custom)" "http://127.0.0.1:5013/pdf" "output/test-go-custom.pdf" "$url" "$token"
 
-    echo "PDFs saved to output/test-browserless.pdf, output/test-rust.pdf, output/test-go-gorod.pdf, and output/test-go-chromedp.pdf"
+    echo "PDFs saved to output/test-browserless.pdf, output/test-rust.pdf, output/test-go-gorod.pdf, output/test-go-chromedp.pdf, and output/test-go-custom.pdf"
     
     # Extract and log headers from all services
     # log_service_headers "Browserless Container" "output/result-browserless.log"
     # log_service_headers "Rust PDF Service" "output/result-rust.log"
     log_service_headers "Go PDF Service (gorod)" "output/result-go-gorod.log"
     log_service_headers "Go PDF Service (chromedp)" "output/result-go-chromedp.log"
+    log_service_headers "Go PDF Service (custom)" "output/result-go-custom.log"
     
     # Collect performance metrics for all services
     echo ""
@@ -460,6 +466,7 @@ execute() {
     # collect_service_metrics "Rust PDF Service" "altinn-pdf-rust" "http://127.0.0.1:5010/health" "output/result-rust.log" "$rust_startup"
     collect_service_metrics "Go PDF Service (gorod)" "altinn-pdf-go-gorod" "http://127.0.0.1:5012/health" "output/result-go-gorod.log" "$go_gorod_startup"
     collect_service_metrics "Go PDF Service (chromedp)" "altinn-pdf-go-chromedp" "http://127.0.0.1:5011/health" "output/result-go-chromedp.log" "$go_chromedp_startup"
+    collect_service_metrics "Go PDF Service (custom)" "altinn-pdf-go-custom" "http://127.0.0.1:5013/health" "output/result-go-custom.log" "$go_custom_startup"
     
     # If not in test mode, also run load tests
     if [ "${TEST:-}" != "1" ]; then
@@ -475,8 +482,10 @@ execute() {
         run_load_test "go PDF service (gorod)" "http://127.0.0.1:5012/pdf" "output/result-go-gorod.log" "$url" "altinn-pdf-go-gorod" "$token"
         echo "--------------------------------------"
         run_load_test "go PDF service (chromedp)" "http://127.0.0.1:5011/pdf" "output/result-go-chromedp.log" "$url" "altinn-pdf-go-chromedp" "$token"
+        echo "--------------------------------------"
+        run_load_test "go PDF service (custom)" "http://127.0.0.1:5013/pdf" "output/result-go-custom.log" "$url" "altinn-pdf-go-custom" "$token"
         
-        echo "Load test results saved to output/result-browserless.log, output/result-rust.log, output/result-go-gorod.log, and output/result-go-chromedp.log"
+        echo "Load test results saved to output/result-browserless.log, output/result-rust.log, output/result-go-gorod.log, output/result-go-chromedp.log, and output/result-go-custom.log"
     fi
 }
 
