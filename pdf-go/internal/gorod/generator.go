@@ -413,10 +413,36 @@ func (w *browserWorker) generatePdf(req *workerRequest) error {
 		}
 
 		// Create context with timeout for waiting
+		var err error
 		waitCtx, cancel := context.WithTimeout(req.ctx, 25*time.Second)
 		defer cancel()
 
-		_, err := page.Context(waitCtx).Element(waitSelector)
+		if waitSelector[0] != '#' {
+			_, err = page.Context(waitCtx).Element(waitSelector)
+		} else {
+			js := `
+			(id) => new Promise((resolve) => {
+				const e = document.getElementById(id);
+				if (e) return resolve(true);
+				const obs = new MutationObserver(recs => {
+					for (const m of recs) {
+						if (m.type === 'attributes' && m.attributeName === 'id' && m.target.id === id) {
+							obs.disconnect(); return resolve(true);
+						}
+						if (m.type === 'childList') for (const n of m.addedNodes) {
+							if (n.nodeType === 1) {
+								if (n.id === id) { obs.disconnect(); return resolve(true); }
+								const hit = n.querySelector && n.querySelector('#' + CSS.escape(id));
+								if (hit) { obs.disconnect(); return resolve(true); }
+							}
+						}
+					}
+				});
+				obs.observe(document, {subtree:true, childList:true, attributes:true, attributeFilter:['id']});
+			})`
+			_, err = page.Context(waitCtx).Evaluate(rod.Eval(js, waitSelector[1:]).ByPromise())
+		}
+
 		if err != nil {
 			log.Printf("[%d, %s] failed to wait for element %q: %v", w.id, w.currentUrl, waitSelector, err)
 			req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", waitSelector), err))

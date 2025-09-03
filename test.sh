@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 
 # Default instance IDs - can be overridden via command line arguments
-INSTANCE_ID_WITH_COOKIE="501337/9e98fe2f-87c6-4254-9172-b6923f91d7ab"
+INSTANCE_ID_WITH_COOKIE="501337/4c61cc7f-a49d-4bc8-9a19-6b6fd026dc6b"
 INSTANCE_ID_WITHOUT_COOKIE="510001/ba899aff-de19-49af-a4c8-cfc6a1e12f3e"
 
 create_json_payload() {

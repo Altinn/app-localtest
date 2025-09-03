@@ -468,11 +468,23 @@ func (w *browserWorker) generatePdf(req *workerRequest) chromedp.Tasks {
 			// update frontend to communicate significant errors?
 			// Some errors are not significant, e.g. failing requests
 			// (e.g. user profile can give 400 for service owner tokens, but the frontend handles that)
-			ctx, cancel := context.WithTimeout(ctx, 25*time.Second)
-			defer cancel()
-			err := chromedp.WaitReady(waitSelector, chromedp.ByQuery).Do(ctx)
+			// ctx, cancel := context.WithTimeout(ctx, 25*time.Second)
+			// defer cancel()
+			// err := chromedp.WaitReady(waitSelector, chromedp.ByQuery).Do(ctx)
+			var fn string
+			if waitSelector[0] == '#' {
+				fn = fmt.Sprintf(`() => !!document.getElementById(%q)`, waitSelector[1:])
+			} else {
+				fn = fmt.Sprintf(`() => !!document.querySelector(%q)`, waitSelector)
+			}
+			err := chromedp.PollFunction(
+				fn,
+				nil,
+				chromedp.WithPollingMutation(),
+				chromedp.WithPollingTimeout(5*time.Second),
+			).Do(ctx)
 			if err != nil {
-				log.Printf("[%d, %s] failed to wait for element %q: %v", w.id, w.currentUrl, waitSelector, err)
+				log.Printf("[%d, %s] failed to wait for element %q (%s): %v", w.id, w.currentUrl, waitSelector, fn, err)
 				req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, fmt.Sprintf("element %q", waitSelector), err))
 			}
 			return nil
@@ -491,7 +503,7 @@ func (w *browserWorker) generatePdf(req *workerRequest) chromedp.Tasks {
 		pdfOptions := page.PrintToPDF().
 			WithPreferCSSPageSize(true).
 			WithScale(1).
-			WithGenerateTaggedPDF(false).
+			WithGenerateTaggedPDF(true).
 			WithGenerateDocumentOutline(false)
 
 		if request.Options.PrintBackground {
