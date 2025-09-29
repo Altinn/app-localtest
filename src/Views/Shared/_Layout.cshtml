@@ -60,7 +60,7 @@
             const updateGrafanaItem = () => {
                 fetch('/Home/Infra/Grafana')
                     .then(res => {
-                        if (res.ok)
+                        if (res.status === 200)
                             el.classList.remove('d-none');
                         else
                             el.classList.add('d-none');
