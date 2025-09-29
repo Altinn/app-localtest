@@ -51,6 +51,10 @@ public class InfraController : ControllerBase
         {
             return StatusCode(StatusCodes.Status204NoContent);
         }
+        catch (TaskCanceledException)
+        {
+            return StatusCode(StatusCodes.Status204NoContent);
+        }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Error while checking health of {container}", "grafana");
