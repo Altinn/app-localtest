@@ -218,9 +218,9 @@ namespace LocalTest.Services.Storage.Implementation
                 instances.RemoveAll(i => !queryParams["process.currentTask"].Contains(i.Process.CurrentTask?.ElementId));
             }
 
-            if (queryParams.ContainsKey("excludeConfirmedBy"))
+            if (queryParams.TryGetValue("excludeConfirmedBy", out var excludeConfirmedBy))
             {
-                string stakeholderId = queryParams.GetValueOrDefault("excludeConfirmedBy").ToString();
+                string stakeholderId = excludeConfirmedBy[0];
                 instances.RemoveAll(i =>
                     i.CompleteConfirmations != null &&
                     i.CompleteConfirmations.Any(cc => cc.StakeholderId.Equals(stakeholderId, StringComparison.Ordinal))
