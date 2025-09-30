@@ -218,6 +218,15 @@ namespace LocalTest.Services.Storage.Implementation
                 instances.RemoveAll(i => !queryParams["process.currentTask"].Contains(i.Process.CurrentTask?.ElementId));
             }
 
+            if (queryParams.ContainsKey("excludeConfirmedBy"))
+            {
+                string stakeholderId = queryParams.GetValueOrDefault("excludeConfirmedBy").ToString();
+                instances.RemoveAll(i =>
+                    i.CompleteConfirmations != null &&
+                    i.CompleteConfirmations.Any(cc => cc.StakeholderId.Equals(stakeholderId, StringComparison.Ordinal))
+                );
+            }
+
             instances.RemoveAll(i => i.Status.IsHardDeleted == true);
 
             await Task.WhenAll(instances.Select(async i =>
