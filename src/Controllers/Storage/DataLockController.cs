@@ -43,12 +43,13 @@ public class DataLockController : ControllerBase
     /// <param name="instanceGuid">The id of the instance that the data element is associated with.</param>
     /// <param name="dataGuid">The id of the data element to delete.</param>
     /// <returns>DataElement that was locked</returns>
-    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+    [Authorize]
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [Produces("application/json")]
     public async Task<ActionResult<DataElement>> Lock(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
     {
@@ -56,6 +57,14 @@ public class DataLockController : ControllerBase
         if (instance == null)
         {
             return instanceError!;
+        }
+
+        // Check authorization: allow both "write" and "sign" permissions for locking
+        // Users with "sign" permission need to be able to lock signature data elements created during signing
+        bool authorized = await _authorizationService.AuthorizeAnyOfInstanceActions(instance, new List<string>() { "write", "sign" });
+        if (!authorized)
+        {
+            return Forbid();
         }
 
         DataElement? dataElement = instance.Data.Find(d => d.Id == dataGuid.ToString());
