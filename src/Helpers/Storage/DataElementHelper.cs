@@ -11,7 +11,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// Creates a data element based on element type, instance id, content type, content file name and file size. 
         /// </summary>
         /// <returns>DataElement</returns>
-        public static DataElement CreateDataElement(string dataType, List<Guid> refs, Instance instance, DateTime creationTime, string contentType, string contentFileName, long fileSize, string user, string generatedFromTask, List<KeyValueEntry> metaData)
+        public static DataElement CreateDataElement(string dataType, List<Guid> refs, Instance instance, DateTime creationTime, string contentType, string contentFileName, long fileSize, string user, string generatedFromTask, List<KeyValueEntry> metadata)
         {
             string dataId = Guid.NewGuid().ToString();
 
@@ -36,7 +36,7 @@ namespace Altinn.Platform.Storage.Helpers
                 LastChanged = creationTime,
                 Size = fileSize,
                 Refs = refs,
-                Metadata = metaData,
+                Metadata = metadata,
             };
 
             if (!String.IsNullOrEmpty(generatedFromTask))
