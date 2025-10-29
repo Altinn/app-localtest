@@ -99,8 +99,9 @@ namespace Altinn.Platform.Storage.Services
                 {
                     UserId = signRequest.Signee.UserId,
                     PersonNumber = signRequest.Signee.PersonNumber,
-                    OrganisationNumber = signRequest.Signee.OrganisationNumber
-                }
+                    OrganisationNumber = signRequest.Signee.OrganisationNumber,
+                    SystemUserId = signRequest.Signee.SystemUserId,
+                },
             };
 
             return signDocument;
