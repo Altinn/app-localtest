@@ -84,5 +84,7 @@ namespace LocalTest.Configuration
         public string InstanceDelegationsDataFolder { get; set; } = "instanceDelegations";
 
         public string LocalGrafanaUrl { get; set; }
+
+        public bool EnableGrafana { get; set; } = false;
     }
 }

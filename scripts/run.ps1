@@ -5,10 +5,10 @@ param(
     [switch]$m = $False,
 )
 
-$Profile = ""
+$MonitoringFile = ""
 if ($m)
 {
-    $Profile = "--profile ""monitoring"""
+    $MonitoringFile = "--file docker-compose.monitoring.yml"
 }
 
 if ($args[0] -eq "stop")
@@ -18,7 +18,8 @@ if ($args[0] -eq "stop")
     if (Get-Command "docker" -errorAction SilentlyContinue)
     {
         Write-host "Stopping using docker"
-        docker compose --profile "*" down -v
+        docker compose down -v
+        docker compose --file docker-compose.monitoring.yml down -v 2>$null
     }
     elseif (Get-Command "docker-compose" -errorAction SilentlyContinue)
     {
@@ -26,12 +27,14 @@ if ($args[0] -eq "stop")
         # If additionally docker-compose is installed, we use that since it has had '--profile' support for a long time,
         # whereas podman-compose has only recently added support, and not many users have the latest versions
         Write-host "Stopping using docker-compose"
-        docker-compose --file podman-compose.yml --profile "*" down -v
+        docker-compose --file podman-compose.yml down -v
+        docker-compose --file podman-compose.monitoring.yml down -v 2>$null
     }
     elseif (Get-Command "podman" -errorAction SilentlyContinue)
     {
         Write-host "Stopping using podman"
-        podman compose --file podman-compose.yml --profile "*" down -v
+        podman compose --file podman-compose.yml down -v
+        podman compose --file podman-compose.monitoring.yml down -v 2>$null
     }
     else
     {
@@ -50,15 +53,16 @@ elseif ($args[0] -eq "k6")
     iex "$Cmd pull grafana/k6:master-with-browser"
     iex "$Cmd run --rm -i --net=host grafana/k6:master-with-browser run - <k6/loadtest.js"
 }
-else 
+else
 {
     Write-Host "Running localtest!"
 
     if (Get-Command "docker" -errorAction SilentlyContinue)
     {
         Write-host "Running using docker"
-        docker compose --profile "*" down -v
-        iex "docker compose $Profile -d --build"
+        docker compose down -v
+        docker compose --file docker-compose.monitoring.yml down -v 2>$null
+        iex "docker compose --file docker-compose.yml $MonitoringFile up -d --build"
     }
     elseif (Get-Command "docker-compose" -errorAction SilentlyContinue)
     {
@@ -66,14 +70,26 @@ else
         # If additionally docker-compose is installed, we use that since it has had '--profile' support for a long time,
         # whereas podman-compose has only recently added support, and not many users have the latest versions
         Write-host "Running using docker-compose"
-        docker-compose --file podman-compose.yml --profile "*" down -v
-        iex "docker-compose --file podman-compose.yml $Profile -d --build"
+        docker-compose --file podman-compose.yml down -v
+        docker-compose --file podman-compose.monitoring.yml down -v 2>$null
+        $PodmanMonitoringFile = ""
+        if ($m)
+        {
+            $PodmanMonitoringFile = "--file podman-compose.monitoring.yml"
+        }
+        iex "docker-compose --file podman-compose.yml $PodmanMonitoringFile up -d --build"
     }
     elseif (Get-Command "podman" -errorAction SilentlyContinue)
     {
         Write-host "Running using podman"
-        podman compose --file podman-compose.yml --profile "*" down -v
-        iex "podman compose --file podman-compose.yml $Profile -d --build"
+        podman compose --file podman-compose.yml down -v
+        podman compose --file podman-compose.monitoring.yml down -v 2>$null
+        $PodmanMonitoringFile = ""
+        if ($m)
+        {
+            $PodmanMonitoringFile = "--file podman-compose.monitoring.yml"
+        }
+        iex "podman compose --file podman-compose.yml $PodmanMonitoringFile up -d --build"
     }
     else
     {
