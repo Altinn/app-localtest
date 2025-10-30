@@ -74,7 +74,7 @@ podman compose --file podman-compose.yml up -d --build
 Optionally, if you want access to Grafana and a local monitoring setup based on OpenTelemetry:
 
 ```shell
-podman compose --file podman-compose.yml --profile "monitoring" up -d --build
+podman compose --file podman-compose.yml --file podman-compose.monitoring.yml up -d --build
 # Grafana should be available at http://local.altinn.cloud:8000/grafana
 # Remember to enable the 'UseOpenTelemetry' configuration flag in the appsettings.json of the app
 ```
@@ -112,7 +112,7 @@ docker compose up -d --build
 Optionally, if you want access to Grafana and a local monitoring setup based on OpenTelemetry:
 
 ```shell
-docker compose --profile "monitoring" up -d --build
+docker compose --file docker-compose.yml --file docker-compose.monitoring.yml up -d --build
 # Grafana should be available at http://local.altinn.cloud/grafana
 # Remember to enable the 'UseOpenTelemetry' configuration flag in the appsettings.json of the app
 ```
