@@ -275,7 +275,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string dataType,
             [FromQuery(Name = "refs")] List<Guid> refs = null,
             [FromQuery(Name = "generatedFromTask")] string generatedFromTask = null,
-            [FromQuery(Name = "Metadata")] List<KeyValueEntry> metadata = null)
+            [FromQuery(Name = "metadata")] List<KeyValueEntry> metadata = null)
         {
             if (instanceOwnerPartyId == 0 || string.IsNullOrEmpty(dataType) || Request.Body == null)
             {
