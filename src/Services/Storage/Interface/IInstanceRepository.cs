@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.Primitives;
+using Altinn.Platform.Storage.Models;
 
-namespace Altinn.Platform.Storage.Repository
-{
-    /// <summary>
+namespace Altinn.Platform.Storage.Repository;
+
+/// <summary>
 /// The repository to handle application instances
 /// </summary>
 public interface IInstanceRepository
@@ -84,6 +85,4 @@ public interface IInstanceRepository
     /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>Hard deleted data elements</returns>
     Task<List<DataElement>> GetHardDeletedDataElements(CancellationToken cancellationToken);
-}
-
 }

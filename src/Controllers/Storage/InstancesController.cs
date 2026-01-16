@@ -745,7 +745,7 @@ namespace Altinn.Platform.Storage.Controllers
                 Created = DateTime.UtcNow,
             };
 
-            await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
+            await _instanceEventRepository.InsertInstanceEvent(instanceEvent, instance);
         }
 
         private static string BuildQueryStringWithOneReplacedParameter(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)

@@ -2,12 +2,11 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
 
-namespace Altinn.Platform.Storage.Services
-{
+namespace Altinn.Platform.Storage.Services;
+
 /// <summary>
 /// This interface describes the required methods and features of a data service implementation.
 /// </summary>
@@ -76,6 +75,4 @@ public interface IDataService
         DataElement dataElement,
         int? storageAccountNumber
     );
-}
-
 }

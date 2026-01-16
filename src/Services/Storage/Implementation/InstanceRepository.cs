@@ -307,7 +307,7 @@ namespace LocalTest.Services.Storage.Implementation
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
             instance.Id = instanceId;
-            instance.Data = await _dataRepository.ReadAll(instanceGuid);
+            instance.Data = await ((DataRepository)_dataRepository).ReadAll(instanceGuid);
 
             if (instance.Data != null && instance.Data.Any())
             {

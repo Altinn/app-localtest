@@ -157,7 +157,7 @@ namespace Altinn.Platform.Storage.Controllers
                 processStateUpdate.Events.Add(instanceEvent);
             }
 
-            Instance updatedInstance = await _instanceAndEventsRepository.Update(existingInstance, updateProperties, processStateUpdate.Events);
+            Instance updatedInstance = await _instanceAndEventsRepository.Update(existingInstance, updateProperties, processStateUpdate.Events, CancellationToken.None);
 
             updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
             return Ok(updatedInstance);

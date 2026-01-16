@@ -1,11 +1,11 @@
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.Platform.Storage.Repository
-{
-    /// <summary>
-    /// Interface to talk to the application repository
-    /// </summary>
-   public interface IApplicationRepository
+namespace Altinn.Platform.Storage.Repository;
+
+/// <summary>
+/// Interface to talk to the application repository
+/// </summary>
+public interface IApplicationRepository
 {
     /// <summary>
     /// Get all applications
@@ -64,5 +64,4 @@ namespace Altinn.Platform.Storage.Repository
     /// The value holds the titles, each language by ';'.
     /// </remarks>
     Task<Dictionary<string, string>> GetAllAppTitles();
-}
 }
