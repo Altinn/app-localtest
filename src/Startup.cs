@@ -96,6 +96,7 @@ namespace LocalTest
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IInstanceAndEventsRepository, InstanceAndEventsRepository>();
             services.AddSingleton<IDataRepository, DataRepository>();
+            services.AddSingleton<IBlobRepository, BlobRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IEventsRepository, EventsRepository>();
             services.AddTransient<ISubscriptionService, SubscriptionService>();
@@ -136,7 +137,7 @@ namespace LocalTest
             services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
             services.AddTransient<IAuthorization, AuthorizationService>();
             services.AddTransient<IDataService, DataService>();
-            services.AddTransient<IInstanceService, InstanceService>();
+            services.AddTransient<ISigningService, SigningService>();
             services.AddTransient<IInstanceEventService, InstanceEventService>();
             services.AddSingleton<IApplicationService, ApplicationService>();
             services.AddMemoryCache();

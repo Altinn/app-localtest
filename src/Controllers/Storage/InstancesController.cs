@@ -113,26 +113,9 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        public async Task<ActionResult<QueryResponse<Instance>>> GetInstances(
-            [FromQuery] string org,
-            [FromQuery] string appId,
-            [FromQuery(Name = "process.currentTask")] string currentTaskId,
-            [FromQuery(Name = "process.isComplete")] bool? processIsComplete,
-            [FromQuery(Name = "process.endEvent")] string processEndEvent,
-            [FromQuery(Name = "process.ended")] string processEnded,
-            [FromQuery(Name = "instanceOwner.partyId")] int? instanceOwnerPartyId,
-            [FromQuery] string lastChanged,
-            [FromQuery] string created,
-            [FromQuery(Name = "visibleAfter")] string visibleAfter,
-            [FromQuery] string dueBefore,
-            [FromQuery] string excludeConfirmedBy,
-            [FromQuery(Name = "status.isSoftDeleted")] bool? isSoftDeleted,
-            [FromQuery(Name = "status.isHardDeleted")] bool? isHardDeleted,
-            [FromQuery(Name = "status.isArchived")] bool? isArchived,
-            string continuationToken,
-            int? size)
+        public async Task<ActionResult<QueryResponse<Instance>>> GetInstances([FromQuery] InstanceQueryParameters queryParams)
         {
-            int pageSize = size ?? 100;
+            int pageSize = queryParams.Size ?? 100;
             string selfContinuationToken = null;
 
             // if user is org
@@ -147,12 +130,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return Forbid();
                 }
 
-                if (string.IsNullOrEmpty(org) && string.IsNullOrEmpty(appId))
+                if (string.IsNullOrEmpty(queryParams.Org) && string.IsNullOrEmpty(queryParams.AppId))
                 {
                     return BadRequest("Org or AppId must be defined.");
                 }
 
-                org = string.IsNullOrEmpty(org) ? appId.Split('/')[0] : org;
+                string org = string.IsNullOrEmpty(queryParams.Org) ? queryParams.AppId.Split('/')[0] : queryParams.Org;
 
                 if (!orgClaim.Equals(org, StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -161,7 +144,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else if (userId is not null || systemUser is not null)
             {
-                if (instanceOwnerPartyId == null)
+                if (queryParams.InstanceOwnerPartyId == null)
                 {
                     return BadRequest("InstanceOwnerPartyId must be defined.");
                 }
@@ -171,24 +154,17 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest();
             }
 
-            if (!string.IsNullOrEmpty(continuationToken))
+            if (!string.IsNullOrEmpty(queryParams.ContinuationToken))
             {
-                selfContinuationToken = continuationToken;
-                continuationToken = HttpUtility.UrlDecode(continuationToken);
+                selfContinuationToken = queryParams.ContinuationToken;
+                queryParams.ContinuationToken = HttpUtility.UrlDecode(queryParams.ContinuationToken);
             }
-
-            Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
             bool appOwnerRequestingInstances = User.HasServiceOwnerScope();
             // filter out hard deleted instances if it isn't appOwner requesting instances
             if (!appOwnerRequestingInstances)
             {
-                bool requestingHardDeleted = false;
-
-                if (queryParams.TryGetValue("status.isHardDeleted", out StringValues hardDeletedQueryValue))
-                {
-                    _ = bool.TryParse(hardDeletedQueryValue.Single(), out requestingHardDeleted);
-                }
+                bool requestingHardDeleted = queryParams.IsHardDeleted ?? false;
 
                 if (requestingHardDeleted)
                 {
@@ -198,15 +174,15 @@ namespace Altinn.Platform.Storage.Controllers
                         Self = BuildRequestLink(selfContinuationToken)
                     };
                 }
-                else if (!queryParams.ContainsKey("status.isHardDeleted"))
+                else if (queryParams.IsHardDeleted == null)
                 {
-                    queryParams["status.isHardDeleted"] = "false";
+                    queryParams.IsHardDeleted = false;
                 }
             }
 
             try
             {
-                InstanceQueryResponse result = await _instanceRepository.GetInstancesFromQuery(queryParams, continuationToken, pageSize);
+                InstanceQueryResponse result = await _instanceRepository.GetInstancesFromQuery(queryParams, true, HttpContext.RequestAborted);
 
                 if (!string.IsNullOrEmpty(result.Exception))
                 {
@@ -227,16 +203,18 @@ namespace Altinn.Platform.Storage.Controllers
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
+                Dictionary<string, StringValues> queryParamsDict = QueryHelpers.ParseQuery(Request.QueryString.Value);
+
                 QueryResponse<Instance> response = new()
                 {
                     Instances = result.Instances,
                     Count = result.Instances.Count,
-                    Self = BuildRequestLink(selfContinuationToken, queryParams)
+                    Self = BuildRequestLink(selfContinuationToken, queryParamsDict)
                 };
 
                 if (!string.IsNullOrEmpty(nextContinuationToken))
                 {
-                    response.Next = BuildRequestLink(nextContinuationToken, queryParams);
+                    response.Next = BuildRequestLink(nextContinuationToken, queryParamsDict);
                 }
 
                 // add self links to platform
@@ -266,7 +244,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             try
             {
-                Instance result = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+                (Instance result, _) = await _instanceRepository.GetOne(instanceGuid, true, HttpContext.RequestAborted);
 
                 bool appOwnerRequestingElement = User.GetOrg() == result.Org;
                 if (!appOwnerRequestingElement)
@@ -375,7 +353,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, creationTime, User.GetUserOrOrgNo());
 
-                storedInstance = await _instanceRepository.Create(instanceToCreate);
+                storedInstance = await _instanceRepository.Create(instanceToCreate, HttpContext.RequestAborted);
                 await DispatchEvent(InstanceEventType.Created, storedInstance);
                 _logger.LogInformation("Created instance: {storedInstance.Id}", storedInstance.Id);
                 storedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
@@ -390,7 +368,7 @@ namespace Altinn.Platform.Storage.Controllers
                 // compensating action - delete instance
                 if (storedInstance != null)
                 {
-                    await _instanceRepository.Delete(storedInstance);
+                    await _instanceRepository.Delete(storedInstance, HttpContext.RequestAborted);
                 }
 
                 _logger.LogError("Deleted instance {storedInstance.Id}", storedInstance?.Id);
@@ -416,7 +394,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             Instance instance;
 
-            instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+            (instance, _) = await _instanceRepository.GetOne(instanceGuid, true, HttpContext.RequestAborted);
 
             if (instance == null)
             {
@@ -448,7 +426,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                Instance deletedInstance = await _instanceRepository.Update(instance);
+                Instance deletedInstance = await _instanceRepository.Update(instance, null, HttpContext.RequestAborted);
 
                 return Ok(deletedInstance);
             }
@@ -478,7 +456,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+            (Instance instance, _) = await _instanceRepository.GetOne(instanceGuid, true, HttpContext.RequestAborted);
 
             string org = User.GetOrg();
 
@@ -496,7 +474,7 @@ namespace Altinn.Platform.Storage.Controllers
             Instance updatedInstance;
             try
             {
-                updatedInstance = await _instanceRepository.Update(instance);
+                updatedInstance = await _instanceRepository.Update(instance, null, HttpContext.RequestAborted);
                 updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
             }
             catch (Exception e)
@@ -532,7 +510,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Invalid read status: {status}. Accepted types include: {string.Join(", ", Enum.GetNames(typeof(ReadStatus)))}");
             }
 
-            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+            (Instance instance, _) = await _instanceRepository.GetOne(instanceGuid, true, HttpContext.RequestAborted);
 
             Instance updatedInstance;
             try
@@ -544,7 +522,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 instance.Status.ReadStatus = newStatus;
 
-                updatedInstance = await _instanceRepository.Update(instance);
+                updatedInstance = await _instanceRepository.Update(instance, null, HttpContext.RequestAborted);
                 updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
             }
             catch (Exception e)
@@ -580,7 +558,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Invalid sub status: {JsonConvert.SerializeObject(substatus)}. Substatus must be defined and include a label.");
             }
 
-            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+            (Instance instance, _) = await _instanceRepository.GetOne(instanceGuid, true, HttpContext.RequestAborted);
 
             string org = User.GetOrg();
             if (!instance.Org.Equals(org))
@@ -600,7 +578,7 @@ namespace Altinn.Platform.Storage.Controllers
                 instance.LastChanged = creationTime;
                 instance.LastChangedBy = User.GetOrgNumber();
 
-                updatedInstance = await _instanceRepository.Update(instance);
+                updatedInstance = await _instanceRepository.Update(instance, null, HttpContext.RequestAborted);
                 updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
             }
             catch (Exception e)
@@ -635,7 +613,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Missing parameter value: presentationTexts is misformed or empty");
             }
 
-            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+            (Instance instance, _) = await _instanceRepository.GetOne(instanceGuid, true, HttpContext.RequestAborted);
 
             if (instance.PresentationTexts == null)
             {
@@ -654,7 +632,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
             }
 
-            Instance updatedInstance = await _instanceRepository.Update(instance);
+            Instance updatedInstance = await _instanceRepository.Update(instance, null, HttpContext.RequestAborted);
             return updatedInstance;
         }
 
@@ -681,7 +659,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Missing parameter value: dataValues is misformed or empty");
             }
 
-            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+            (Instance instance, _) = await _instanceRepository.GetOne(instanceGuid, true, HttpContext.RequestAborted);
 
             instance.DataValues ??= new Dictionary<string, string>();
 
@@ -697,7 +675,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
             }
 
-            var updatedInstance = await _instanceRepository.Update(instance);
+            var updatedInstance = await _instanceRepository.Update(instance, null, HttpContext.RequestAborted);
             return Ok(updatedInstance);
         }
 

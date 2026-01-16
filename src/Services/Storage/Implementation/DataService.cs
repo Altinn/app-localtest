@@ -28,13 +28,13 @@ namespace Altinn.Platform.Storage.Services
         }
 
         /// <inheritdoc/>
-        public Task StartFileScan(Instance instance, DataType dataType, DataElement dataElement, DateTimeOffset blobTimestamp, CancellationToken ct)
+        public Task StartFileScan(Instance instance, DataType dataType, DataElement dataElement, DateTimeOffset blobTimestamp, int? altinnMainVersion, CancellationToken ct)
         {
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public async Task<(string FileHash, ServiceError ServiceError)> GenerateSha256Hash(string org, Guid instanceGuid, Guid dataElementId)
+        public async Task<(string FileHash, ServiceError ServiceError)> GenerateSha256Hash(string org, Guid instanceGuid, Guid dataElementId, int? altinnMainVersion)
         {
             DataElement dataElement = await _dataRepository.Read(instanceGuid, dataElementId);
             if (dataElement == null)
@@ -52,12 +52,20 @@ namespace Altinn.Platform.Storage.Services
         }
 
         /// <inheritdoc/>
-        public async Task UploadDataAndCreateDataElement(string org, Stream stream, DataElement dataElement)
+        public async Task UploadDataAndCreateDataElement(string org, Stream stream, DataElement dataElement, long streamLength, int? altinnMainVersion)
         {
             (long length, DateTimeOffset blobTimestamp) = await _dataRepository.WriteDataToStorage(org, stream, dataElement.BlobStoragePath);
             dataElement.Size = length;
 
             await _dataRepository.Create(dataElement);
+        }
+
+        /// <inheritdoc/>
+        public async Task<DataElement> DeleteImmediately(Instance instance, DataElement dataElement, int? altinnMainVersion)
+        {
+            await _dataRepository.DeleteDataInStorage(instance.Org, dataElement.BlobStoragePath);
+            await _dataRepository.Delete(dataElement);
+            return dataElement;
         }
 
         private string CalculateSha256Hash(Stream fileStream)

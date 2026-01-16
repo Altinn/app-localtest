@@ -17,15 +17,15 @@ namespace Altinn.Platform.Storage.Controllers
     [ApiController]
     public class SignController : ControllerBase
     {
-        private readonly IInstanceService _instanceService;
+        private readonly ISigningService _signingService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SignController"/> class
         /// </summary>
-        /// <param name="instanceService">A instance service with instance related business logic.</param>
-        public SignController(IInstanceService instanceService)
+        /// <param name="signingService">A instance service with instance related business logic.</param>
+        public SignController(ISigningService signingService)
         {
-            _instanceService = instanceService;
+            _signingService = signingService;
         }
 
         /// <summary>
@@ -34,12 +34,13 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The guid of the instance</param>
         /// <param name="signRequest">Signrequest containing data element ids and sign status</param>
+        /// <param name="cancellationToken"></param>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_SIGN)]
         [HttpPost("{instanceOwnerPartyId:int}/{instanceGuid:guid}/sign")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        public async Task<ActionResult> Sign([FromRoute] int instanceOwnerPartyId, [FromRoute] Guid instanceGuid, [FromBody] SignRequest signRequest)
+        public async Task<ActionResult> Sign([FromRoute] int instanceOwnerPartyId, [FromRoute] Guid instanceGuid, [FromBody] SignRequest signRequest, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(signRequest?.Signee?.UserId) && signRequest?.Signee?.SystemUserId is null)
             {
@@ -52,7 +53,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return Unauthorized();
             }
 
-            (bool created, ServiceError serviceError) = await _instanceService.CreateSignDocument(instanceOwnerPartyId, instanceGuid, signRequest, performedBy);
+            (bool created, ServiceError serviceError) = await _signingService.CreateSignDocument(instanceGuid, signRequest, performedBy, cancellationToken);
             
             if (created)
             {

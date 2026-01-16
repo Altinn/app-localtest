@@ -329,7 +329,7 @@ namespace Altinn.Platform.Storage.Controllers
             DataElement dataElement = await _dataRepository.Create(newData);
             dataElement.SetPlatformSelfLinks(_storageBaseAndHost, instanceOwnerPartyId);
 
-            await _dataService.StartFileScan(instance, dataTypeDefinition, dataElement, blobTimestamp, CancellationToken.None);
+            await _dataService.StartFileScan(instance, dataTypeDefinition, dataElement, blobTimestamp, null, CancellationToken.None);
 
             await _instanceEventService.DispatchEvent(InstanceEventType.Created, instance, dataElement);
 
@@ -447,7 +447,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 updatedElement.SetPlatformSelfLinks(_storageBaseAndHost, instanceOwnerPartyId);
 
-                await _dataService.StartFileScan(instance, dataTypeDefinition, dataElement, blobTimestamp, CancellationToken.None);
+                await _dataService.StartFileScan(instance, dataTypeDefinition, dataElement, blobTimestamp, null, CancellationToken.None);
 
                 await _instanceEventService.DispatchEvent(InstanceEventType.Saved, instance, updatedElement);
 
@@ -610,7 +610,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private async Task<(Instance Instance, ActionResult ErrorMessage)> GetInstanceAsync(Guid instanceGuid, int instanceOwnerPartyId)
         {
-            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+            (Instance instance, long internalId) = await _instanceRepository.GetOne(instanceGuid, true, CancellationToken.None);
 
             if (instance == null)
             {

@@ -69,7 +69,7 @@ namespace Altinn.Platform.Storage.Controllers
             Guid instanceGuid,
             [FromBody] ProcessState processState)
         {
-            Instance existingInstance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+            (Instance existingInstance, _) = await _instanceRepository.GetOne(instanceGuid, true, HttpContext.RequestAborted);
 
             if (existingInstance is null)
             {
@@ -87,7 +87,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             UpdateInstance(existingInstance, processState, out _);
 
-            Instance updatedInstance = await _instanceRepository.Update(existingInstance);
+            Instance updatedInstance = await _instanceRepository.Update(existingInstance, null, HttpContext.RequestAborted);
 
             if (processState?.CurrentTask?.AltinnTaskType == "signing")
             {
@@ -117,7 +117,7 @@ namespace Altinn.Platform.Storage.Controllers
             Guid instanceGuid,
             [FromBody] ProcessStateUpdate processStateUpdate)
         {
-            Instance existingInstance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+            (Instance existingInstance, _) = await _instanceRepository.GetOne(instanceGuid, true, HttpContext.RequestAborted);
 
             if (existingInstance is null)
             {
