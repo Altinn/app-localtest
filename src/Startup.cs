@@ -95,8 +95,7 @@ namespace LocalTest
             services.AddSingleton<IClaims, ClaimsService>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IInstanceAndEventsRepository, InstanceAndEventsRepository>();
-            services.AddSingleton<DataRepository>();
-            services.AddSingleton<IDataRepository>(sp => sp.GetRequiredService<DataRepository>());
+            services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IBlobRepository, BlobRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IEventsRepository, EventsRepository>();
