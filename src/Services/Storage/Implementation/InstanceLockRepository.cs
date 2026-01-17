@@ -1,3 +1,5 @@
+#nullable enable
+using System.Security.Cryptography;
 using System.Text.Json;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
@@ -11,19 +13,23 @@ public class InstanceLockRepository(
     TimeProvider timeProvider
 ) : IInstanceLockRepository
 {
+    private const int _lockSecretSizeBytes = 20;
     private readonly PartitionedAsyncLock _lock = new();
 
     private Task<IDisposable> Lock(Guid instanceGuid) => _lock.Lock(instanceGuid);
 
     private readonly LocalPlatformSettings _localPlatformSettings = localPlatformSettings.Value;
 
-    public async Task<(AcquireLockResult Result, Guid? LockId)> TryAcquireLock(
+    public async Task<(AcquireLockResult Result, LockToken? lockToken)> TryAcquireLock(
         Guid instanceGuid,
         int ttlSeconds,
         string userId,
         CancellationToken cancellationToken
     )
     {
+        var lockSecret = RandomNumberGenerator.GetBytes(_lockSecretSizeBytes);
+        var lockSecretHash = SHA256.HashData(lockSecret);
+
         using var _ = await Lock(instanceGuid);
 
         Directory.CreateDirectory(GetProcessLockFolder());
@@ -35,25 +41,26 @@ public class InstanceLockRepository(
                 openStream,
                 cancellationToken: cancellationToken);
 
-            if (existingLockData.LockedUntil > timeProvider.GetUtcNow())
+            if (existingLockData!.LockedUntil > timeProvider.GetUtcNow())
             {
                 return (AcquireLockResult.LockAlreadyHeld, null);
             }
         }
 
-        var processLockId = Guid.NewGuid();
+        var lockId = Guid.NewGuid();
 
         var now = timeProvider.GetUtcNow();
         var lockData = new InstanceLock
         {
-            Id = processLockId,
+            Id = lockId,
             InstanceGuid = instanceGuid,
             LockedAt = now,
             LockedUntil = now.AddSeconds(ttlSeconds),
+            SecretHash = lockSecretHash,
             LockedBy = userId
         };
 
-        string path = GetProcessLockPath(instanceGuid, processLockId);
+        string path = GetProcessLockPath(instanceGuid, lockId);
 
         await using FileStream createStream = File.Create(path);
         await JsonSerializer.SerializeAsync(
@@ -62,11 +69,11 @@ public class InstanceLockRepository(
             cancellationToken: cancellationToken
         );
 
-        return (AcquireLockResult.Success, processLockId);
+        return (AcquireLockResult.Success, new LockToken(lockId, lockSecret));
     }
 
     public async Task<UpdateLockResult> TryUpdateLockExpiration(
-        Guid lockId,
+        LockToken lockToken,
         Guid instanceGuid,
         int ttlSeconds,
         CancellationToken cancellationToken = default
@@ -74,7 +81,7 @@ public class InstanceLockRepository(
     {
         using var _ = await Lock(instanceGuid);
 
-        var lockFile = GetProcessLockPath(instanceGuid, lockId);
+        var lockFile = GetProcessLockPath(instanceGuid, lockToken.Id);
         if (!File.Exists(lockFile))
         {
             return UpdateLockResult.LockNotFound;
@@ -85,6 +92,11 @@ public class InstanceLockRepository(
         var existingLockData = await JsonSerializer.DeserializeAsync<InstanceLock>(
             fileStream,
             cancellationToken: cancellationToken);
+
+        if (existingLockData!.SecretHash != SHA256.HashData(lockToken.Secret))
+        {
+            return UpdateLockResult.TokenMismatch;
+        }
 
         var now = timeProvider.GetUtcNow();
 
@@ -99,6 +111,7 @@ public class InstanceLockRepository(
             InstanceGuid = existingLockData.InstanceGuid,
             LockedAt = existingLockData.LockedAt,
             LockedUntil = now.AddSeconds(ttlSeconds),
+            SecretHash = existingLockData.SecretHash,
             LockedBy = existingLockData.LockedBy
         };
 
@@ -111,7 +124,7 @@ public class InstanceLockRepository(
         return UpdateLockResult.Success;
     }
 
-    public Task<InstanceLock> Get(Guid lockId, CancellationToken cancellationToken = default)
+    public Task<InstanceLock?> Get(long lockId, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

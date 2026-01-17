@@ -16,8 +16,8 @@ public interface IInstanceLockRepository
     /// <param name="ttlSeconds">Lock time to live in seconds</param>
     /// <param name="userId">The ID of the user acquiring the lock</param>
     /// <param name="cancellationToken">CancellationToken</param>
-    /// <returns>A tuple containing the result of the operation and the lock ID if successful.</returns>
-    Task<(AcquireLockResult Result, Guid? LockId)> TryAcquireLock(
+    /// <returns>A tuple containing the result of the operation and the lock token if successful.</returns>
+    Task<(AcquireLockResult Result, LockToken? lockToken)> TryAcquireLock(
         Guid instanceGuid,
         int ttlSeconds,
         string userId,
@@ -25,15 +25,15 @@ public interface IInstanceLockRepository
     );
 
     /// <summary>
-    /// Tries to update the expiration of an existing lock. Fails if the lock doesn't exist or is no longer active.
+    /// Tries to update the expiration of an existing lock. Fails if the lock doesn't exist, is no longer active, or the secret doesn't match.
     /// </summary>
-    /// <param name="lockId">The lock ID</param>
+    /// <param name="lockToken">The lock token</param>
     /// <param name="instanceInternalId">The instance internal ID</param>
     /// <param name="ttlSeconds">New time to live in seconds</param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>The result of the operation.</returns>
     Task<UpdateLockResult> TryUpdateLockExpiration(
-        Guid lockId,
+        LockToken lockToken,
         Guid instanceGuid,
         int ttlSeconds,
         CancellationToken cancellationToken = default
@@ -45,5 +45,5 @@ public interface IInstanceLockRepository
     /// <param name="lockId">The lock ID</param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>The lock details if they exist, null otherwise</returns>
-    Task<InstanceLock?> Get(Guid lockId, CancellationToken cancellationToken = default);
+    Task<InstanceLock?> Get(long lockId, CancellationToken cancellationToken = default);
 }

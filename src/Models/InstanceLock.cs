@@ -26,6 +26,11 @@ public sealed class InstanceLock
     public DateTimeOffset LockedUntil { get; set; }
 
     /// <summary>
+    /// Gets or sets the hash of the lock secret
+    /// </summary>
+    public required byte[] SecretHash { get; set; }
+
+    /// <summary>
     /// Gets or sets the identifier of the user or process that acquired the lock
     /// </summary>
     public required string LockedBy { get; set; }
