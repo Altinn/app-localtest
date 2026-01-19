@@ -83,6 +83,7 @@ namespace LocalTest
             services.AddControllersWithViews();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<Altinn.Platform.Storage.Configuration.WolverineSettings>(Configuration.GetSection("WolverineSettings"));
             services.Configure<Altinn.Platform.Authentication.Configuration.GeneralSettings>(Configuration.GetSection("AuthnGeneralSettings"));
             services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
@@ -115,6 +116,7 @@ namespace LocalTest
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
             services.AddSingleton<IRoles, RolesWrapper>();
             services.AddSingleton<IPartiesWithInstancesClient, PartiesWithInstancesClient>();
+            services.AddSingleton<IOnDemandClient, OnDemandClient>();
             services.AddSingleton<IPolicyRepository, PolicyRepositoryMock>();
             services.AddSingleton<IResourceRegistry, ResourceRegistryService>();
             services.AddSingleton<IResourceRegistryRepository, RegisterResourceRepositoryMock>();
@@ -140,6 +142,7 @@ namespace LocalTest
             services.AddTransient<ISigningService, SigningService>();
             services.AddTransient<IInstanceEventService, InstanceEventService>();
             services.AddSingleton<IApplicationService, ApplicationService>();
+            services.AddTransient<IRegisterService, RegisterService>();
             services.AddMemoryCache();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
