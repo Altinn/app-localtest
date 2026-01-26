@@ -83,6 +83,7 @@ namespace LocalTest
             services.AddControllersWithViews();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<Altinn.Platform.Storage.Configuration.GeneralSettings>(Configuration.GetSection("StorageGeneralSettings"));
             services.Configure<Altinn.Platform.Storage.Configuration.WolverineSettings>(Configuration.GetSection("WolverineSettings"));
             services.Configure<Altinn.Platform.Authentication.Configuration.GeneralSettings>(Configuration.GetSection("AuthnGeneralSettings"));
             services.Configure<CertificateSettings>(Configuration);
