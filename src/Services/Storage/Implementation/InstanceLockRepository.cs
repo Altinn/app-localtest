@@ -32,9 +32,9 @@ public class InstanceLockRepository(
 
         using var _ = await Lock(instanceGuid);
 
-        Directory.CreateDirectory(GetProcessLockFolder());
+        Directory.CreateDirectory(GetInstanceLockFolder());
 
-        foreach (var lockFile in Directory.EnumerateFiles(GetProcessLockFolder(), $"{instanceGuid}_*.json"))
+        foreach (var lockFile in Directory.EnumerateFiles(GetInstanceLockFolder(), $"{instanceGuid}_*.json"))
         {
             await using FileStream openStream = File.OpenRead(lockFile);
             var existingLockData = await JsonSerializer.DeserializeAsync<InstanceLock>(
@@ -60,7 +60,7 @@ public class InstanceLockRepository(
             LockedBy = userId
         };
 
-        string path = GetProcessLockPath(instanceGuid, lockId);
+        string path = GetInstanceLockPath(instanceGuid, lockId);
 
         await using FileStream createStream = File.Create(path);
         await JsonSerializer.SerializeAsync(
@@ -81,7 +81,7 @@ public class InstanceLockRepository(
     {
         using var _ = await Lock(instanceGuid);
 
-        var lockFile = GetProcessLockPath(instanceGuid, lockToken.Id);
+        var lockFile = GetInstanceLockPath(instanceGuid, lockToken.Id);
         if (!File.Exists(lockFile))
         {
             return UpdateLockResult.LockNotFound;
@@ -129,15 +129,15 @@ public class InstanceLockRepository(
         throw new NotImplementedException();
     }
 
-    private string GetProcessLockPath(Guid instanceGuid, Guid processLockId)
+    private string GetInstanceLockPath(Guid instanceGuid, Guid instanceLockId)
     {
-        return $"{GetProcessLockFolder()}{instanceGuid}_{processLockId}.json";
+        return $"{GetInstanceLockFolder()}{instanceGuid}_{instanceLockId}.json";
     }
 
-    private string GetProcessLockFolder()
+    private string GetInstanceLockFolder()
     {
         return _localPlatformSettings.LocalTestingStorageBasePath
             + _localPlatformSettings.DocumentDbFolder
-            + _localPlatformSettings.ProcessLockFolder;
+            + _localPlatformSettings.InstanceLockFolder;
     }
 }

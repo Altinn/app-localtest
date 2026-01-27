@@ -73,7 +73,7 @@ namespace LocalTest.Configuration
 
         public string PartyListFolder { get; set; } = "partylist/";
 
-        public string ProcessLockFolder { get; set; } = "processlocks/";
+        public string InstanceLockFolder { get; set; } = "instancelocks/";
 
         public string ResourceRegistryFolder { get; set; } = "authorization/resources/";
 
