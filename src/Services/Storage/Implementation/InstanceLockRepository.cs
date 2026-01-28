@@ -93,7 +93,7 @@ public class InstanceLockRepository(
             fileStream,
             cancellationToken: cancellationToken);
 
-        if (existingLockData!.SecretHash != SHA256.HashData(lockToken.Secret))
+        if (!Enumerable.SequenceEqual(existingLockData!.SecretHash, SHA256.HashData(lockToken.Secret)))
         {
             return UpdateLockResult.TokenMismatch;
         }
