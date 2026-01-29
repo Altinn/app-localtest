@@ -115,6 +115,7 @@ public class InstanceLockRepository(
             LockedBy = existingLockData.LockedBy
         };
 
+        fileStream.SetLength(0);
         await JsonSerializer.SerializeAsync(
             fileStream,
             lockData,
