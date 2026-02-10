@@ -7,7 +7,7 @@ RUN dotnet restore LocalTest.csproj
 COPY ./src .
 RUN dotnet publish LocalTest.csproj -c Release -o /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:0389d5b7d60f75ebbeec3bfffd2ad0a06d234e7b998231a5a86abf5e919a7d01 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:f7c13dc6c0bfc8f988a3677b739296c95794557ddd0e62e315eae8fc3aa505c1 AS final
 ENV ASPNETCORE_URLS=http://*:5101/
 EXPOSE 5101
 # Create the storage folder if it isn't mapped to a volume runtime
