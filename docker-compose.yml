@@ -68,7 +68,7 @@ services:
 
   monitoring_otel_collector:
     container_name: monitoring_otel_collector
-    image: otel/opentelemetry-collector-contrib:0.98.0
+    image: otel/opentelemetry-collector-contrib:0.146.1
     restart: always
     networks:
       - altinntestlocal_network
@@ -86,7 +86,7 @@ services:
 
   monitoring_tempo:
     container_name: monitoring_tempo
-    image: grafana/tempo:2.4.1
+    image: grafana/tempo:2.10.1
     restart: always
     networks:
       - altinntestlocal_network
@@ -99,7 +99,7 @@ services:
 
   monitoring_mimir:
     container_name: monitoring_mimir
-    image: grafana/mimir:2.12.0
+    image: grafana/mimir:2.17.6
     restart: always
     networks:
       - altinntestlocal_network
@@ -113,7 +113,7 @@ services:
 
   monitoring_loki:
     container_name: monitoring_loki
-    image: grafana/loki:3.0.0
+    image: grafana/loki:3.6.7
     restart: always
     networks:
       - altinntestlocal_network
@@ -127,7 +127,7 @@ services:
 
   monitoring_grafana:
     container_name: monitoring_grafana
-    image: grafana/grafana:10.4.2
+    image: grafana/grafana:10.4.19
     restart: always
     networks:
       - altinntestlocal_network
