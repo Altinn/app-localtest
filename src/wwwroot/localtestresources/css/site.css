@@ -1,6 +1,18 @@
 ﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
 
+.skip-link {
+  position: absolute;
+  inset-inline-start: 1rem;
+  z-index: 100;
+  transform: translateY(-100%);
+  transition: transform 0.1s;
+
+  &:focus-visible {
+    transform: translateY(0);
+  }
+}
+
 a.navbar-brand {
   white-space: normal;
   text-align: center;

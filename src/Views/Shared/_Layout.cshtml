@@ -9,6 +9,7 @@
     @RenderSection("Styles", required: false)
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
@@ -46,7 +47,7 @@
         </nav>
     </header>
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" id="main-content" class="pb-3" tabindex="-1">
             @RenderBody()
         </main>
     </div>
