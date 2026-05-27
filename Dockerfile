@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine@sha256:7d3a75ca5c8ac4679908ef7a2591b9bc257c62bd530167de32bba105148bb7be AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine@sha256:76c0a94454533f6d4a8667c2515b1a67a4f0389f84303b7a352c2045fccb63ed AS build
 WORKDIR /src
 
 COPY ./src/LocalTest.csproj .
