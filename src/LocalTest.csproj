@@ -16,7 +16,7 @@
     <PackageReference Include="Altinn.Platform.Models" Version="1.6.1" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="4.2.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-    <PackageReference Include="FluentValidation" Version="11.10.0" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="JWTCookieAuthentication" Version="3.0.1" />
     <!-- The follwoing are depencencies for JWTCookieAuthentication, but we need newer versions-->
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.3.1" />
